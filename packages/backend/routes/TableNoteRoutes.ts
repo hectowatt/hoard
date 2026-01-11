@@ -5,11 +5,12 @@ import TableNoteColumn from '../entities/TableNoteColumn.js';
 import TableNote from '../entities/TableNote.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
 import { EntityManager } from 'typeorm';
-import { table } from 'console';
 
 const router = Router();
 
-
+const generateRandomId = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
 
 // 【INSERT】テーブルノート登録API
 router.post('/', authMiddleware, async (req, res) => {
@@ -159,9 +160,8 @@ router.get('/', authMiddleware, async (req, res) => {
           is_pinned: tableNote.is_pinned,
           createdate: tableNote.createdate.toISOString(),
           updatedate: tableNote.updatedate.toISOString(),
-          columns: columns.map(col => ({ id: col.id, name: col.name, order: col.order, table_note_id: col.table_note_id })),
-          rowCells: groupedRowCells
-        });
+          columns: tableNote.is_locked ? [{ id: generateRandomId(), name: "secret", order: 1, table_note_id: tableNote.id }] :  columns.map(col => ({ id: col.id, name: col.name, order: col.order, table_note_id: col.table_note_id })),
+          rowCells: tableNote.is_locked ? [[{id: generateRandomId(),rowIndex: 0,value: "secret",columnId: columns[0].id,table_note_id: tableNote.id}]] :groupedRowCells});
       }
       return res.status(200).json(tableNoteArray);
     } else {
@@ -501,6 +501,75 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error restoring TableNote", error);
     res.status(500).json({ error: "Failed to restore TableNote" });
+  }
+});
+
+
+// 【SELECT】テーブルノート単体取得API
+router.get('/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: "Must set id" });
+  }
+
+  try {
+    const tableNoteRepository = AppDataSource.getRepository(TableNote);
+    const tableNote = await tableNoteRepository.findOne({ where: { id: id, is_deleted: false }, order: { updatedate: 'DESC' } });
+
+    if (tableNote) {
+      // 返却するテーブルノートの配列
+            let result: { tablenote:{id: string, title: string, label_id: string, is_locked: boolean, is_pinned: boolean, createdate: string, updatedate: string}; columns: { id: string, name: string, order: number, table_note_id: string }[] | null; rowCells: { id: string, rowIndex: number, value: string, columnId?: string, table_note_id: string }[][] | null } = {
+        tablenote: {
+          id: tableNote.id,
+          title: tableNote.title,
+          label_id: tableNote.label_id,
+          is_locked: tableNote.is_locked,
+          is_pinned: tableNote.is_pinned,
+          createdate: tableNote.createdate.toISOString(),
+          updatedate: tableNote.updatedate.toISOString()
+        },
+        columns: [],
+        rowCells: []
+      };
+      result.tablenote.id = tableNote.id;
+      result.tablenote.title = tableNote.title;
+      result.tablenote.label_id = tableNote.label_id;
+      result.tablenote.is_locked = tableNote.is_locked;
+      result.tablenote.is_pinned = tableNote.is_pinned;
+      result.tablenote.createdate = tableNote.createdate.toISOString();
+      result.tablenote.updatedate =  tableNote.updatedate.toISOString();
+
+      // 各テーブルノートのカラムとセルを取得
+
+        const columnRepository = AppDataSource.getRepository(TableNoteColumn);
+        const cellRepository = AppDataSource.getRepository(TableNoteCell);
+        const columns = await columnRepository.find({ where: { table_note_id: tableNote.id }, order: { order: 'ASC' } });
+        const rowCells = await cellRepository.find({ where: { table_note_id: tableNote.id }, relations: ['column'], order: { row_index: 'ASC', column: { order: 'ASC' } } });
+
+        // rowCellsをrow_indexごとにグループ化して2次元配列に変換
+        const groupedRowCells: { id: string; rowIndex: number; value: string; columnId?: string; table_note_id: string }[][] = [];
+        rowCells.forEach(cell => {
+          const rowIdx = cell.row_index;
+          if (!groupedRowCells[rowIdx]) groupedRowCells[rowIdx] = [];
+          groupedRowCells[rowIdx].push({
+            id: cell.id,
+            rowIndex: cell.row_index,
+            value: cell.value,
+            columnId: cell.column ? cell.column.id : undefined,
+            table_note_id: cell.table_note_id
+          });
+        });
+
+          result.columns = tableNote.is_locked ? null :  columns.map(col => ({ id: col.id, name: col.name, order: col.order, table_note_id: col.table_note_id })),
+          result.rowCells = tableNote.is_locked ? null :groupedRowCells
+      return res.status(200).json(result);
+    } else {
+      return res.status(200).json([]);
+    }
+  } catch (error) {
+    console.error("Error fetching TableNote:", error);
+    res.status(500).json({ error: 'Failed to fetch TableNote' });
+    return;
   }
 });
 

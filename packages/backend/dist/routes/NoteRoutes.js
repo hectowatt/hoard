@@ -9,6 +9,11 @@ router.get('/', authMiddleware, async (req, res) => {
         const noteRepository = AppDataSource.getRepository(Note);
         // Notesを全件取得する
         const notes = await noteRepository.find({ where: { is_deleted: false }, order: { updatedate: 'DESC' } });
+        notes.map(note => {
+            if (note.is_locked) {
+                note.content = "";
+            }
+        });
         return res.status(200).json(notes);
     }
     catch (error) {
@@ -241,6 +246,25 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
         console.error("Error restoring note", error);
         res.status(500).json({ error: "Failed to restore notes" });
     }
+});
+// 【SELECT】ノート単体取得API
+router.get('/:id', authMiddleware, async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return res.status(400).json({ error: "Must set id" });
+    }
+    try {
+        const noteRepository = AppDataSource.getRepository(Note);
+        const note = await noteRepository.findOneBy({ id: id });
+        if (!note) {
+            return res.status(404).json({ error: "Note not found" });
+        }
+        if (note.is_locked) {
+            note.content = "";
+        }
+        return res.status(200).json(note);
+    }
+    catch (error) { }
 });
 export default router;
 //# sourceMappingURL=NoteRoutes.js.map
