@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "../context/SnackbarProvider";
 import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import PushPinIcon from '@mui/icons-material/PushPin';
 
 interface Column {
     id: number;
@@ -274,6 +275,10 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                             throw new Error("Failed to lock note");
                         }
                         setIsLocked(true);
+
+                        // ロックしたら内容は非表示にする
+                        setEditColumns([]);
+                        setEditRowCells([]);
                     } else {
                         // パスワードが未登録の場合はロックできない
                         showSnackbar(t("message_cannot_lock_note_without_notepassword"), "warning");
@@ -290,7 +295,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
     };
 
     // ロック解除処理
-    const hubdlePasswordSubmit = async () => {
+    const hundlePasswordSubmit = async () => {
         if (!inputPassword || inputPassword.trim() === "") {
             showSnackbar(t("message_notepassword_must_be_set_to_unlock"), "warning");
             return;
@@ -331,7 +336,32 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                             showSnackbar(t("message_error_occured_redirect_login"), "warning");
                             router.push("/login");
                         } else {
+                            showSnackbar(t("message_error_occured"), "error");
                             throw new Error("Failed to unlock note");
+                        }
+                    } else {
+                        // ロック解除成功したらノートを再取得する
+                        const responseGet = await fetch(`/api/tablenotes/${id}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include"
+                        });
+
+                        if (!responseGet.ok) {
+                            if (responseGet.status === 401) {
+                                console.error("Error get tablenote");
+                                showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                                router.push("/login");
+                            } else {
+                                showSnackbar(t("message_error_occured"), "error");
+                                throw new Error("Failed to get tablenote");
+                            }
+                        } else {
+                            const resultGet = await responseGet.json();
+                            setEditColumns(resultGet.columns || []);
+                            setEditRowCells(Array.isArray(resultGet.rowCells) ? resultGet.rowCells : []);
                         }
                     }
 
@@ -339,14 +369,14 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                     setPasswordDialogOpen(false);
                     setInputPassword(""); // 入力フィールドをクリア
                 } catch (error) {
-                    console.error("Error unlocking note", error);
+                    showSnackbar(t("message_error_occured"), "error");
                     return;
                 }
             } else {
                 showSnackbar(t("message_incorrect_password"), "warning");
             }
         } else {
-            console.error("failed to compare password");
+            showSnackbar(t("message_error_occured"), "error");
             return;
         }
     }
@@ -665,15 +695,23 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }} data-testid="button_delete">{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "text.secondary" }}>
+                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
                                 </IconButton>
-                                <IconButton
-                                    onClick={handlePin}
-                                    sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
-                                    data-testid="button_pin">
-                                    <PushPinOutlinedIcon />
-                                </IconButton>
+                                {isPinned ? (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pinned">
+                                        <PushPinIcon />
+                                    </IconButton>) : (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pin">
+                                        <PushPinOutlinedIcon />
+                                    </IconButton>
+                                )}
                             </>
                         ) : (
                             // パスワードロックされている場合
@@ -681,15 +719,23 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }}>{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "text.secondary" }}>
+                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
                                 </IconButton>
-                                <IconButton
-                                    onClick={handlePin}
-                                    sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
-                                    data-testid="button_pin">
-                                    <PushPinOutlinedIcon />
-                                </IconButton>
+                                {isPinned ? (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pinned">
+                                        <PushPinIcon />
+                                    </IconButton>) : (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pin">
+                                        <PushPinOutlinedIcon />
+                                    </IconButton>
+                                )}
                             </>
                         )}
                     </Box>
@@ -709,7 +755,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                         variant="standard"
                     />
                     <Button
-                        onClick={hubdlePasswordSubmit}
+                        onClick={hundlePasswordSubmit}
                         variant="contained"
                         sx={{ mt: 2 }}
                     >

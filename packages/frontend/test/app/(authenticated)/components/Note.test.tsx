@@ -48,6 +48,36 @@ describe("Note", () => {
         }
     });
 
+    it("ピンボタンを押すとアイコンがPushPinOutlinedIconからPushPinIconに変わる", async () => {
+        render(
+            <LocaleProvider>
+                <SnackbarProvider>
+                    <NoteProvider>
+                        <LabelProvider>
+                            <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                        </LabelProvider>
+                    </NoteProvider>
+                </SnackbarProvider>
+            </LocaleProvider>
+        );
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("テストノートタイトル"));
+        });
+
+        // 初期状態ではPushPinOutlinedIconが表示されていることを確認
+        const pinButton = await screen.findByTestId("icon_pin");
+
+        // ピンボタンをクリック
+        await act(async () => {
+            fireEvent.click(pinButton);
+        });
+
+        // アイコンがPushPinIconに変わることを確認
+        const pinnedButton = await screen.findByTestId("icon_pinned");
+        expect(pinnedButton).toBeVisible();
+    });
+
     it("openがfalseのとき、タイトルとcontent、作成日、更新日が表示される", () => {
         render(
             <LocaleProvider>
@@ -87,7 +117,7 @@ describe("Note", () => {
         expect(screen.getByTestId("button_edit")).toBeVisible();
         expect(screen.getByTestId("button_delete")).toBeVisible();
         expect(screen.getByTestId("unlock")).toBeVisible();
-        expect(screen.getByTestId("button_pin")).toBeVisible();
+        expect(screen.getByTestId("icon_pin")).toBeVisible();
     })
 
     it("編集モード時、タイトルを編集できる", async () => {

@@ -94,7 +94,7 @@ describe("NoteRoutes", () => {
         expect(response.body[0].label.id).toBe("1");
         expect(response.body[1].id).toBe("2");
         expect(response.body[1].title).toBe("test title2");
-        expect(response.body[1].content).toBe("test content2");
+        expect(response.body[1].content).toBe("");
         expect(response.body[1].label_id).toBe("2");
         expect(response.body[1].is_deleted).toBe(false);
         expect(response.body[1].deletedate).toBe(null);

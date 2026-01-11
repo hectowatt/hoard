@@ -273,15 +273,12 @@ describe("TableNoteRoutes", () => {
         expect(response.body[1].is_pinned).toBe(false);
         expect(response.body[1]).toHaveProperty("createdate");
         expect(response.body[1]).toHaveProperty("updatedate");
-        expect(response.body[1].columns[0].id).toBe("3");
-        expect(response.body[1].columns[0].name).toBe("test column3");
+        expect(response.body[1].columns[0].id).not.toBe("3");
+        expect(response.body[1].columns[0].name).toBe("secret");
         expect(response.body[1].columns[0].order).toBe(1);
-        expect(response.body[1].rowCells[0][0].id).toBe("3");
+        expect(response.body[1].rowCells[0][0].id).not.toBe("3");
         expect(response.body[1].rowCells[0][0].rowIndex).toBe(0);
-        expect(response.body[1].rowCells[0][0].value).toBe("test cell3");
-        expect(response.body[1].rowCells[1][0].id).toBe("4");
-        expect(response.body[1].rowCells[1][0].rowIndex).toBe(1);
-        expect(response.body[1].rowCells[1][0].value).toBe("test cell4");
+        expect(response.body[1].rowCells[0][0].value).toBe("secret");
     });
     it("GET /tablenotes and error ocuured should return 200 and message", async () => {
         mockRepoTableNote.find.mockRejectedValueOnce(() => Promise.reject(new Error("DB find error!")));

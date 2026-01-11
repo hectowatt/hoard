@@ -4,18 +4,17 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Debug Backend (ts-node)",
+            "name": "Hoard debug",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run",
                 "dev"
             ],
-            "program": "${workspaceFolder}/packages/backend/server.ts",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/packages/backend"
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

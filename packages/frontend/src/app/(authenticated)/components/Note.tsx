@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import PushPinIcon from '@mui/icons-material/PushPin';
 
 interface NoteProps {
     id: string;
@@ -198,7 +199,6 @@ export default function Note({
 
                 if (responseSelect.ok) {
                     const resultSelect = await responseSelect.json();
-                    console.log("パスワード取得成功", resultSelect);
                     if (resultSelect.password_id !== null && resultSelect.password_id !== "" && resultSelect.password_id !== undefined) {
                         // すでにパスワードが登録されている場合はパスワード入力を求める
                         setPasswordId(resultSelect.password_id);
@@ -252,6 +252,7 @@ export default function Note({
                             throw new Error("Failed to lock note");
                         }
                         setIsLocked(true);
+                        setEditContent(""); // ロックしたら内容は非表示にする
                     } else {
                         // パスワードが未登録の場合はロックできない
                         showSnackbar(t("message_cannot_lock_note_without_notepassword"), "warning");
@@ -268,7 +269,7 @@ export default function Note({
     };
 
     // ロック解除処理
-    const hubdlePasswordSubmit = async () => {
+    const hundlePasswordSubmit = async () => {
         if (!inputPassword || inputPassword.trim() === "") {
             showSnackbar(t("message_notepassword_must_be_set_to_unlock"), "warning");
             return;
@@ -309,22 +310,46 @@ export default function Note({
                             console.error("Error unlocking note");
                             showSnackbar(t("message_error_occured_redirect_login"), "warning");
                             router.push("/login");
+                        } else {
+                            showSnackbar(t("message_error_occured"), "error");
+                            throw new Error("Failed to unlock note");
                         }
-                        throw new Error("Failed to unlock note");
-                    }
+                    } else {
+                        // ロック解除成功したらノートを再取得する
+                        const responseGet = await fetch(`/api/notes/${id}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            credentials: "include"
+                        });
 
+                        if (!responseGet.ok) {
+                            if (responseGet.status === 401) {
+                                console.error("Error get note");
+                                showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                                router.push("/login");
+                            } else {
+                                showSnackbar(t("message_error_occured"), "error");
+                                throw new Error("Failed to get note");
+                            }
+                        } else {
+                            const resultGet = await responseGet.json();
+                            setEditContent(resultGet.content);
+                        }
+                    }
                     setIsLocked(false);
                     setPasswordDialogOpen(false);
                     setInputPassword(""); // 入力フィールドをクリア
                 } catch (error) {
-                    console.error("Error unlocking note", error);
+                    showSnackbar(t("message_error_occured"), "error");
                     return;
                 }
             } else {
                 showSnackbar(t("message_incorrect_current_password"), "warning");
             }
         } else {
-            console.error("failed to compare password");
+            showSnackbar(t("message_error_occured"), "error");
             return;
         }
     }
@@ -464,15 +489,24 @@ export default function Note({
                                 <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }} data-testid="button_delete">{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "text.secondary" }}>
+                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
                                 </IconButton>
-                                <IconButton
-                                    onClick={handlePin}
-                                    sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
-                                    data-testid="button_pin">
-                                    <PushPinOutlinedIcon />
-                                </IconButton>
+                                {isPinned ? (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pinned">
+                                        <PushPinIcon />
+                                    </IconButton>) : (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pin">
+                                        <PushPinOutlinedIcon />
+                                    </IconButton>
+                                )}
+
 
                             </>
                         ) : (
@@ -481,15 +515,23 @@ export default function Note({
                                 <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }}>{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "text.secondary" }}>
+                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
                                 </IconButton>
-                                <IconButton
-                                    onClick={handlePin}
-                                    sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
-                                    data-testid="button_pin">
-                                    <PushPinOutlinedIcon />
-                                </IconButton>
+                                {isPinned ? (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pinned">
+                                        <PushPinIcon />
+                                    </IconButton>) : (
+                                    <IconButton
+                                        onClick={handlePin}
+                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        data-testid="icon_pin">
+                                        <PushPinOutlinedIcon />
+                                    </IconButton>
+                                )}
                             </>
                         )}
                     </Box>
@@ -508,7 +550,7 @@ export default function Note({
                         variant="standard"
                     />
                     <Button
-                        onClick={hubdlePasswordSubmit}
+                        onClick={hundlePasswordSubmit}
                         variant="contained"
                         sx={{ mt: 2 }}
                     >

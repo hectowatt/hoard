@@ -9,51 +9,19 @@ on:
 
 # 実行する一連のタスク（ジョブ）
 jobs:
-  # フロントエンド用のテストジョブ
-  frontend-test:
-    # ジョブを実行する仮想環境の種類
+  test:
     runs-on: ubuntu-latest
-
-    # このジョブ内での一連のステップ
     steps:
-      # 1. リポジトリのソースコードをチェックアウトする
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      # 2. Node.js環境をセットアップする
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm' # npmの依存関係をキャッシュする
-          cache-dependency-path: 'packages/frontend/package-lock.json' # キャッシュのキーとなるファイルを指定
-
-      # 3. フロントエンドのディレクトリで依存関係をインストールし、テストを実行
-      - name: Install dependencies and run tests for frontend
-        # このステップの作業ディレクトリを指定
-        working-directory: ./packages/frontend
-        # 実行するコマンド
-        run: |
-          npm install
-          npm test
-
-  # バックエンド用のテストジョブ
-  backend-test:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: 'packages/backend/package-lock.json'
+          cache-dependency-path: 'package-lock.json'
 
-      - name: Install dependencies and run tests for backend
-        working-directory: ./packages/backend
-        run: |
-          npm install
-          npm test
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run all tests
+        run: npm run test

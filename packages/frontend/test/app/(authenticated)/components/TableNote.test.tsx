@@ -68,6 +68,36 @@ describe("TableNote", () => {
         }
     });
 
+    it("ピンボタンを押すとアイコンがPushPinOutlinedIconからPushPinIconに変わる", async () => {
+        render(
+            <LocaleProvider>
+                <SnackbarProvider>
+                    <NoteProvider>
+                        <LabelProvider>
+                            <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                        </LabelProvider>
+                    </NoteProvider>
+                </SnackbarProvider>
+            </LocaleProvider>
+        );
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("テストノートタイトル"));
+        });
+
+        // 初期状態ではPushPinOutlinedIconが表示されていることを確認
+        const pinButton = await screen.findByTestId("icon_pin");
+
+        // ピンボタンをクリック
+        await act(async () => {
+            fireEvent.click(pinButton);
+        });
+
+        // アイコンがPushPinIconに変わることを確認
+        const pinnedButton = await screen.findByTestId("icon_pinned");
+        expect(pinnedButton).toBeVisible();
+    });
+
     it("openがfalseのとき、タイトルと作成日、更新日が表示される", () => {
         render(
             <LocaleProvider>

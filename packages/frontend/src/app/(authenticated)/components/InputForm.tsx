@@ -131,7 +131,6 @@ export default function InputForm({ onInsert, onInsertTableNote }: InputFormProp
 
                 if (responseSelect.ok) {
                     const resultSelect = await responseSelect.json();
-                    console.log("パスワード取得成功", resultSelect);
                     if (resultSelect.password_id !== null && resultSelect.password_id !== "" && resultSelect.password_id !== undefined) {
                         // すでにパスワードが登録されている場合はパスワード入力を求める
                         setIsLocked(true);
