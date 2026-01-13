@@ -49,7 +49,7 @@ Hoard supports Japanese and English(US).
 ## Development
 To develop Hoard, Devcontainer is usefull.
 
-Copy setting file and build container.
+Copy settings file and build container.
 ```
 cp docker-compose_sample_dev.yml docker-compose.yml
 
