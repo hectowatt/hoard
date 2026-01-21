@@ -13,6 +13,7 @@ import passwordRoutes from './routes/PasswordRoutes.js';
 import tableNoteRoutes from './routes/TableNoteRoutes.js';
 import exportRoutes from './routes/ExportRoutes.js'
 import importRoutes from './routes/ImportRoutes.js'
+import tokenRoutes from './routes/TokenRoutes.js'
 import { LessThan } from 'typeorm';
 import Note from './entities/Note.js';
 import cookieParser from 'cookie-parser';
@@ -90,6 +91,7 @@ app.use('/api/password', passwordRoutes);
 app.use('/api/tablenotes', tableNoteRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/token', tokenRoutes);
 
 
 // 定期的に古いノートを削除する関数（７日経過したら削除）

@@ -13,6 +13,7 @@ import Image from "next/image";
 import ThemeRegistry from "@/app/context/ThemeProvider";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
+import { startTokenRefreshInterval } from "../(authenticated)/script/TokenRefresh";
 
 
 export default function LoginPage() {
@@ -39,6 +40,11 @@ export default function LoginPage() {
         })
 
         if (response.ok) {
+            // クッキーが確実に設定されるまで待機
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // リフレッシュトークンの自動開始
+            startTokenRefreshInterval();
             console.log("login success!");
             router.push("/");
         } else {

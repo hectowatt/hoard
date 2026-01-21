@@ -3,8 +3,12 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
 export async function middleware(req: NextRequest) {
-    const token = req.cookies.get("token")?.value;
+    const token = req.cookies.get("accessToken")?.value;
     if (!token) {
+        // /login への遷移の場合はスキップ
+        if (req.nextUrl.pathname === "/login") {
+            return NextResponse.next();
+        }
         return NextResponse.redirect(new URL("/login", req.url));
     }
 

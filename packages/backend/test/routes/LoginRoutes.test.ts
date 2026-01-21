@@ -52,8 +52,8 @@ describe("POST /login", () => {
 
     // JWT が有効か確認
     const cookie = res.headers["set-cookie"][0];
-    const token = cookie.split(";")[0].replace("token=", "");
-    const decoded = jwt.verify(token, process.env.SECRET || "hoard_secret");
+    const accessToken = cookie.split(";")[0].replace("accessToken=", "");
+    const decoded = jwt.verify(accessToken, process.env.SECRET || "hoard_secret");
     expect(decoded).toHaveProperty("id", mockUser.id);
   });
 

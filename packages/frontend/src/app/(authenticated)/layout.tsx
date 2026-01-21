@@ -46,6 +46,7 @@ import { useTranslation } from "react-i18next";
 import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import Image from "next/image";
+import { stopTokenRefreshInterval } from "./script/TokenRefresh";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -229,6 +230,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 
 			if (response.ok) {
 				showSnackbar(t("message_logouted"), "success");
+				stopTokenRefreshInterval();
 				// ログアウト後はログインページにリダイレクト
 				router.push("/login");
 			}

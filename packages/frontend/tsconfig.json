@@ -25,7 +25,8 @@
     "incremental": true,
     "typeRoots": [
       "./src/app/types",
-      "./node_modules/@types"
+      "./node_modules/@types",
+      "../../node_modules/@types"
     ],
     "plugins": [
       {
@@ -37,6 +38,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
     ".next/types/**/*.ts",
     "next.config.mj",
     ".next/dev/types/**/*.ts"

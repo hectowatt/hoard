@@ -25,7 +25,7 @@ services:
   db:
     image: postgres:15
     container_name: hoard_db
-    restart: always
+    restart: unless-stopped
     ports:
       - "7654:5432"
     environment:
@@ -49,7 +49,7 @@ services:
   nginx:
     image: nginx:latest
     container_name: hoard_nginx
-    restart: always
+    restart: unless-stopped
     ports:
       - "8120:80"
     volumes:

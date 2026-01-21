@@ -1,5 +1,4 @@
 import { jest } from '@jest/globals';
-import type { Request, Response, NextFunction } from "express";
 
 
 // Redisのgetメソッドのモック関数
@@ -61,7 +60,7 @@ describe('AuthMiddleware', () => {
 
         mockRedisGet.mockResolvedValueOnce('valid');
 
-        const req = { cookies: { token }, user: undefined } as any;
+        const req = { cookies: { accessToken:token }, user: undefined } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
@@ -69,7 +68,7 @@ describe('AuthMiddleware', () => {
 
         expect(mockJwtVerify).toHaveBeenCalledWith('valid-token', SECRET);
 
-        expect(mockRedisGet).toHaveBeenCalledWith('token:valid-jti');
+        expect(mockRedisGet).toHaveBeenCalledWith('accessToken:valid-jti');
 
         expect(next).toHaveBeenCalled();
 
@@ -81,20 +80,20 @@ describe('AuthMiddleware', () => {
 
         mockRedisGet.mockResolvedValueOnce(null);
 
-        const req = { cookies: { token } } as any;
+        const req = { cookies: { accessToken:token } } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
         await authMiddleware(req, res, next);
 
         expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith({ message: 'Token invalid or expired' });
+        expect(res.json).toHaveBeenCalledWith({ message: 'accessToken invalid or expired' });
         expect(next).not.toHaveBeenCalled();
     });
 
 
     it('should return 401 for an invalid token signature', async () => {
-        const req = { cookies: { token: 'invalid-signature-token' } } as any;
+        const req = { cookies: { accessToken: 'invalid-signature-token' } } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
