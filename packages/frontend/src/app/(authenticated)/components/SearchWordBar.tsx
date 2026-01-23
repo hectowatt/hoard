@@ -24,7 +24,7 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
             })}>
             <TextField
                 id="outlined-search-bar"
-                variant="outlined"
+                variant="filled"
                 size="medium"
                 placeholder={t("placeholder_search")}
                 value={word}

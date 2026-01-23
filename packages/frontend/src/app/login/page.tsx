@@ -111,13 +111,13 @@ export default function LoginPage() {
 
         if (isUserExists) {
             return (
-                <Button variant="contained" color="primary" onClick={handleLogin} data-testid="login">
+                <Button variant="contained" onClick={handleLogin} data-testid="login">
                     {t("button_login")}
                 </Button>
             );
         } else {
             return (
-                <Button variant="contained" color="primary" onClick={handleRegistUser} data-testid="makeuser">
+                <Button variant="contained" onClick={handleRegistUser} data-testid="makeuser">
                     {t("button_create_user")}
                 </Button>
             );

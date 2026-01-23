@@ -25,6 +25,7 @@
     "label_createdate": "Create Date",
     "label_updatedate": "Update Date",
     "label_labels": "Label",
+    "label_select_filter_labels": "Select labels to filter",
     "label_lockednote": "This note is locked.",
     "label_input_labels": "Edit labels",
     "label_trash_desc": "Notes in the trash will be deleted after 7 days.",

@@ -20,6 +20,10 @@ import {
 	ListItemIcon,
 	ListItemText,
 	Divider,
+	Stack,
+	Dialog,
+	DialogTitle,
+	DialogContent,
 } from "@mui/material";
 import TextSnippetOutlinedIcon from "@mui/icons-material/TextSnippetOutlined";
 import LabelImportantOutlineRoundedIcon from "@mui/icons-material/LabelImportantOutlineRounded";
@@ -150,6 +154,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	const { searchLabel, setSearchLabel } = useSearchLabelContext();
 	const { t } = useTranslation();
 	const { showSnackbar } = useSnackbar();
+	const [isLabelSelectDialogOpen, setIsLabelSelectDialogOpen] = React.useState(false);
 
 	const logoHorizontalPadding = { xs: 1, sm: 2 };
 	const closedDrawerPaddingRight = logoHorizontalPadding;
@@ -248,6 +253,26 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	if (!mode) {
 		return null;
 	}
+
+	const LabelSelectDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+		return (
+			<Dialog open={open} onClose={onClose}>
+				<DialogTitle>{t("label_select_filter_labels")}</DialogTitle>
+				<DialogContent>
+					{labels.map((label) => (
+						<ListItem key={label.id} disablePadding>
+							<ListItemButton onClick={() => {
+								setSearchLabel(label.labelname);
+								onClose();
+							}} data-testid={`labellistitem-${label.id}`}>
+								<ListItemText primary={label.labelname} />
+							</ListItemButton>
+						</ListItem>
+					))}
+				</DialogContent>
+			</Dialog>
+		);
+	}
 	return (
 		<>
 			<Box sx={{ display: "flex" }}>
@@ -315,51 +340,99 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						</IconButton>
 					</Toolbar>
 				</AppBar>
-				<Drawer
-					variant="permanent"
-					open={isDrawerOpen}
-					sx={{
-						// Drawerの幅を動的に設定
-						width: currentDrawerWidth,
-						flexShrink: 0,
-						[`& .MuiDrawer-paper`]: {
-							width: currentDrawerWidth,
-							boxSizing: "border-box",
-							overflowX: "hidden",
-							border: "none",
-							transition: theme.transitions.create("width", {
-								easing: theme.transitions.easing.sharp,
-								duration: theme.transitions.duration.enteringScreen,
-							}),
-						}
-					}}
-				>
-					<Toolbar />
-					<Box sx={{ overflowY: "auto", overflowX: "hidden" }}>
-						<List>
-							<ListItemButton onClick={() => setIsDrawerOpen(!isDrawerOpen)} sx={{ pl: logoHorizontalPadding }}>
-								<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', pl: logoHorizontalPadding }}>
-									<MenuOutlinedIcon />
-								</ListItemIcon>
-							</ListItemButton>
-							{navAboveItems.map(({ text, icon, href, dialog, onClick }) => (
-								<ListItem key={text} disablePadding>
-									{dialog ? (
-										<ListItemButton onClick={() => setLabelDialogOpen(true)} sx={{ pl: logoHorizontalPadding }}>
-											<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
+				{isSmallScreen ?
+					// スマホの場合はドロワーは表示せずに画面下部にメニューを表示する
+					<AppBar position="fixed" sx={{
+						top: 'auto',
+						bottom: 0,
+						transition: theme.transitions.create(["width", "margin"], {
+							easing: theme.transitions.easing.sharp,
+							duration: theme.transitions.duration.enteringScreen,
+						}),
+					}}>
+						<Toolbar sx={{
+							display: "flex",
+							alignItems: "center",
+							gap: 2,
+							paddingLeft: { xs: 1, sm: 2 },
+							paddingRight: { xs: 1, sm: 2 },
+						}}>
+							<Box sx={{ width: '100%' }}>
+								<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
+									{navAboveItems.map(({ text, icon, href, dialog, onClick }) => (
+										<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+											{dialog ? (
+												<IconButton onClick={() => setLabelDialogOpen(true)} color="inherit">
+													{icon}
+												</IconButton>
+											) : (
+												onClick ? (
+													<IconButton component={Link} href={href!} onClick={onClick} color="inherit">
+														{icon}
+													</IconButton>
+												) : (
+													<IconButton component={Link} href={href!} color="inherit">
+														{icon}
+													</IconButton>
+												)
+											)}
+										</ListItem>
+									))}
+									<LabelSelectDialog open={isLabelSelectDialogOpen} onClose={() => setIsLabelSelectDialogOpen(false)} data-testid="labelselectdialogbutton" />
+									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+										<IconButton color="inherit" onClick={() => { setIsLabelSelectDialogOpen(true) }}>
+											<LabelImportantOutlineRoundedIcon />
+										</IconButton>
+									</ListItem>
+									{navBelowItems.map(({ text, icon, href }) => (
+										<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+											<IconButton component={Link} href={href} color="inherit">
 												{icon}
-											</ListItemIcon>
-											{isDrawerOpen && <ListItemText primary={text} sx={{
-												opacity: isDrawerOpen ? 1 : 0,
-												whiteSpace: 'nowrap',
-												transition: (theme) => theme.transitions.create('opacity', {
-													duration: theme.transitions.duration.enteringScreen,
-												})
-											}} />}
-										</ListItemButton>
-									) : (
-										onClick ? (
-											<ListItemButton component={Link} href={href!} onClick={onClick} sx={{ pl: logoHorizontalPadding }}>
+											</IconButton>
+										</ListItem>
+									))}
+									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+										<IconButton onClick={handleReload} data-testid="reloadbutton" color="inherit">
+											{belowIcons[2]}
+										</IconButton>
+									</ListItem>
+								</Stack>
+							</Box>
+						</Toolbar>
+					</AppBar>
+					:
+					// 通常の画面ではDrawerを表示
+					<Drawer
+						variant="permanent"
+						open={isDrawerOpen}
+						sx={{
+							// Drawerの幅を動的に設定
+							width: currentDrawerWidth,
+							flexShrink: 0,
+							[`& .MuiDrawer-paper`]: {
+								width: currentDrawerWidth,
+								boxSizing: "border-box",
+								overflowX: "hidden",
+								border: "none",
+								transition: theme.transitions.create("width", {
+									easing: theme.transitions.easing.sharp,
+									duration: theme.transitions.duration.enteringScreen,
+								}),
+							}
+						}}
+					>
+						<Toolbar />
+						<Box sx={{ overflowY: "auto", overflowX: "hidden" }}>
+							<List>
+								<ListItemButton onClick={() => setIsDrawerOpen(!isDrawerOpen)} sx={{ pl: logoHorizontalPadding }} color="inherit">
+									<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', pl: logoHorizontalPadding }}>
+										<MenuOutlinedIcon />
+									</ListItemIcon>
+								</ListItemButton>
+								{navAboveItems.map(({ text, icon, href, dialog, onClick }) => (
+									<ListItem key={text} disablePadding>
+										{dialog ? (
+											<ListItemButton onClick={() => setLabelDialogOpen(true)} sx={{ pl: logoHorizontalPadding }} color="inherit">
 												<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
 													{icon}
 												</ListItemIcon>
@@ -372,53 +445,82 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 												}} />}
 											</ListItemButton>
 										) : (
-											<ListItemButton component={Link} href={href!} sx={{ pl: logoHorizontalPadding }}>
-												<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
-													{icon}
-												</ListItemIcon>
-												{isDrawerOpen && <ListItemText primary={text} sx={{
+											onClick ? (
+												<ListItemButton component={Link} href={href!} onClick={onClick} sx={{ pl: logoHorizontalPadding }} color="inherit">
+													<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
+														{icon}
+													</ListItemIcon>
+													{isDrawerOpen && <ListItemText primary={text} sx={{
+														opacity: isDrawerOpen ? 1 : 0,
+														whiteSpace: 'nowrap',
+														transition: (theme) => theme.transitions.create('opacity', {
+															duration: theme.transitions.duration.enteringScreen,
+														})
+													}} />}
+												</ListItemButton>
+											) : (
+												<ListItemButton component={Link} href={href!} sx={{ pl: logoHorizontalPadding }} color="inherit">
+													<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
+														{icon}
+													</ListItemIcon>
+													{isDrawerOpen && <ListItemText primary={text} sx={{
+														opacity: isDrawerOpen ? 1 : 0,
+														whiteSpace: 'nowrap',
+														transition: (theme) => theme.transitions.create('opacity', {
+															duration: theme.transitions.duration.enteringScreen,
+														})
+													}} />}
+												</ListItemButton>
+											)
+										)}
+									</ListItem>
+								))}
+								{labels.map((label) => (
+									<ListItem key={label.id} disablePadding>
+										<ListItemButton onClick={() => setSearchLabel(label.labelname)} sx={{ pl: logoHorizontalPadding }} data-testid={`labellistitem-${label.id}`} color="inherit">
+											<ListItemIcon sx={{ minWidth: 0, justifyContent: "center", px: logoHorizontalPadding }}>
+												<LabelImportantOutlineRoundedIcon data-testid={`addedlabelicon-${label.id}`} />
+											</ListItemIcon>
+											{isDrawerOpen && <ListItemText
+												primary={label.labelname}
+												sx={{
 													opacity: isDrawerOpen ? 1 : 0,
-													whiteSpace: 'nowrap',
-													transition: (theme) => theme.transitions.create('opacity', {
-														duration: theme.transitions.duration.enteringScreen,
-													})
-												}} />}
-											</ListItemButton>
-										)
-									)}
-								</ListItem>
-							))}
-							{labels.map((label) => (
-								<ListItem key={label.id} disablePadding>
-									<ListItemButton onClick={() => setSearchLabel(label.labelname)} sx={{ pl: logoHorizontalPadding }} data-testid={`labellistitem-${label.id}`}>
-										<ListItemIcon sx={{ minWidth: 0, justifyContent: "center", px: logoHorizontalPadding }}>
-											<LabelImportantOutlineRoundedIcon data-testid={`addedlabelicon-${label.id}`} />
-										</ListItemIcon>
-										{isDrawerOpen && <ListItemText
-											primary={label.labelname}
-											sx={{
+													whiteSpace: "nowrap",
+													transition: (theme) =>
+														theme.transitions.create("opacity", {
+															duration: theme.transitions.duration.enteringScreen,
+														}),
+												}}
+											/>
+											}
+										</ListItemButton>
+									</ListItem>
+								))}
+							</List>
+							<Divider />
+							<List>
+								{navBelowItems.map(({ text, icon, href }) => (
+									<ListItem key={text} disablePadding>
+										<ListItemButton component={Link} href={href} sx={{ pl: logoHorizontalPadding }} color="inherit">
+											<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
+												{icon}
+											</ListItemIcon>
+											{isDrawerOpen && <ListItemText primary={text} sx={{
 												opacity: isDrawerOpen ? 1 : 0,
-												whiteSpace: "nowrap",
-												transition: (theme) =>
-													theme.transitions.create("opacity", {
-														duration: theme.transitions.duration.enteringScreen,
-													}),
-											}}
-										/>
-										}
-									</ListItemButton>
-								</ListItem>
-							))}
-						</List>
-						<Divider />
-						<List>
-							{navBelowItems.map(({ text, icon, href }) => (
-								<ListItem key={text} disablePadding>
-									<ListItemButton component={Link} href={href} sx={{ pl: logoHorizontalPadding }}>
+												whiteSpace: 'nowrap',
+												transition: (theme) => theme.transitions.create('opacity', {
+													duration: theme.transitions.duration.enteringScreen,
+												})
+											}} />}
+										</ListItemButton>
+									</ListItem>
+								))}
+								<ListItem disablePadding>
+									<ListItemButton onClick={handleReload} data-testid="reloadbutton" sx={{ pl: logoHorizontalPadding }} color="inherit">
 										<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
-											{icon}
+											{belowIcons[2]}
 										</ListItemIcon>
-										{isDrawerOpen && <ListItemText primary={text} sx={{
+										{isDrawerOpen && <ListItemText primary={t("nav_reload")} sx={{
 											opacity: isDrawerOpen ? 1 : 0,
 											whiteSpace: 'nowrap',
 											transition: (theme) => theme.transitions.create('opacity', {
@@ -427,24 +529,10 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 										}} />}
 									</ListItemButton>
 								</ListItem>
-							))}
-							<ListItem disablePadding>
-								<ListItemButton onClick={handleReload} data-testid="reloadbutton" sx={{ pl: logoHorizontalPadding }}>
-									<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', px: logoHorizontalPadding }}>
-										{belowIcons[2]}
-									</ListItemIcon>
-									{isDrawerOpen && <ListItemText primary={t("nav_reload")} sx={{
-										opacity: isDrawerOpen ? 1 : 0,
-										whiteSpace: 'nowrap',
-										transition: (theme) => theme.transitions.create('opacity', {
-											duration: theme.transitions.duration.enteringScreen,
-										})
-									}} />}
-								</ListItemButton>
-							</ListItem>
-						</List>
-					</Box>
-				</Drawer>
+							</List>
+						</Box>
+					</Drawer>}
+
 				<Box component="main" sx={{
 					flexGrow: 1, p: 3, width: `calc(100% - ${currentDrawerWidth}px)`,
 					overflowX: 'hidden',
@@ -452,7 +540,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 					<Toolbar />
 					{children}
 				</Box>
-			</Box>
+			</Box >
 			<CreateLabelDialog open={labelDialogOpen} onClose={() => setLabelDialogOpen(false)} />
 		</>
 	);

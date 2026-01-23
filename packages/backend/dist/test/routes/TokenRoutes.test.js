@@ -45,6 +45,15 @@ describe("Token Routes", () => {
             value: '',
         });
     });
+    it("POST /token/refresh and redis del error occured should return 500 and error", async () => {
+        mockRedisGet.mockResolvedValueOnce('valid');
+        mockRedisDel.mockRejectedValueOnce(new Error("Redis del error"));
+        const res = await request(app)
+            .post("/api/token/refresh")
+            .set('Cookie', ['refreshToken=dummy-valid-token', 'accessToken=dummy-valid-token']);
+        expect(res.status).toBe(500);
+        expect(res.body.error).toBe("Old token delete error");
+    });
     it("POST /token/refresh should return 200 and set new access token cookie", async () => {
         mockRedisGet.mockResolvedValueOnce('valid');
         const res = await request(app)
@@ -77,15 +86,6 @@ describe("Token Routes", () => {
             .set('Cookie', ['refreshToken=invalid-token', 'accessToken=dummy-valid-token']);
         expect(res.status).toBe(500);
         expect(res.body.error).toBe("Token refresh failed");
-    });
-    it("POST /token/refresh and redis del error occured should return 500 and error", async () => {
-        mockRedisGet.mockResolvedValueOnce('valid');
-        mockRedisDel.mockRejectedValueOnce(new Error("Redis del error"));
-        const res = await request(app)
-            .post("/api/token/refresh")
-            .set('Cookie', ['refreshToken=dummy-valid-token', 'accessToken=dummy-valid-token']);
-        expect(res.status).toBe(500);
-        expect(res.body.error).toBe("Old token delete error");
     });
     afterAll(async () => {
         if (hoardserver) {
