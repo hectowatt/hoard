@@ -275,7 +275,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	}
 	return (
 		<>
-			<Box sx={{ display: "flex" }}>
+			<Box sx={{ display: "flex", paddingTop: 'env(safe-area-inset-top)' }}>
 				<CssBaseline />
 				<AppBar
 					position="fixed"
