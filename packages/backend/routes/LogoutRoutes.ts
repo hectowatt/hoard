@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
     
     if (accessToken) {
         try {
-            const decoded = jwt.verify(accessToken, REFRESH_SECRET);
+            const decoded = jwt.verify(accessToken, SECRET);
             if (typeof decoded === 'object' && decoded !== null && 'jti' in decoded) {
                 await redis.del(`accessToken:${decoded.jti}`);
             }
