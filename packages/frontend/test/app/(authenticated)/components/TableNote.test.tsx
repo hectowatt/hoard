@@ -116,7 +116,7 @@ describe("TableNote", () => {
         expect(screen.getByText(/2025\/07\/06/)).toBeVisible();
     })
 
-    it("クリックした時、編集、削除、ロックアイコンボタンが表示される", async () => {
+    it("クリックした時、保存、キャンセル、削除、ロックアイコンボタン、ピンボタンが表示される", async () => {
         render(
             <LocaleProvider>
                 <SnackbarProvider>
@@ -133,9 +133,11 @@ describe("TableNote", () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         })
 
-        expect(screen.getByTestId("button_edit")).toBeVisible();
+        expect(screen.getByTestId("button_save")).toBeVisible();
+        expect(screen.getByTestId("button_cancel")).toBeVisible();
         expect(screen.getByTestId("button_delete")).toBeVisible();
         expect(screen.getByTestId("unlock")).toBeVisible();
+        expect(screen.getByTestId("icon_pin")).toBeVisible();
     })
 
     it("編集モード時、タイトルを編集できる", async () => {
@@ -153,10 +155,6 @@ describe("TableNote", () => {
 
         await act(async () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
-        })
-
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
         })
 
         const titleInput = screen.getByDisplayValue("テストノートタイトル") as HTMLInputElement;
@@ -186,10 +184,6 @@ describe("TableNote", () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         })
 
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
-        })
-
         const contentInput = screen.getByDisplayValue("テストカラム1") as HTMLInputElement;
 
         await act(async () => {
@@ -217,9 +211,7 @@ describe("TableNote", () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         })
 
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
-        })
+
         const addColumnButton = screen.getByTestId("addColumnIcon");
 
         await act(async () => {
@@ -248,10 +240,6 @@ describe("TableNote", () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         })
 
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
-        })
-
         const contentInput = screen.getByDisplayValue("テストセル１") as HTMLInputElement;
 
         await act(async () => {
@@ -278,11 +266,6 @@ describe("TableNote", () => {
         await act(async () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         });
-
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
-        });
-
 
         fireEvent.mouseDown(screen.getByTestId("label-select").querySelector('[role="combobox"]')!);
 
@@ -314,8 +297,6 @@ describe("TableNote", () => {
         await act(async () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         });
-
-
 
         // DialogのBackdropを取得してクリック
         const backdrop = document.querySelector('.MuiBackdrop-root') as HTMLElement;

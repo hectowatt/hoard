@@ -201,7 +201,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                 styleOverrides: {
                     root: ({ theme }) => ({
                         "&:hover": {
-                            backgroundColor: "#e3a84e"
+                            backgroundColor: "#e9a33b"
                         },
                     }),
                 },
