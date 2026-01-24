@@ -39,6 +39,7 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
                     borderRadius: "5px"
                 }}
                 InputProps={{
+                    disableUnderline: true,
                     endAdornment: (
                         <InputAdornment position="end">
                             <IconButton type="submit" edge="end" aria-label="search" onClick={() => setSearchWord(word)}>
