@@ -23,10 +23,7 @@ export const viewport: Viewport = {
     initialScale: 1,
     width: 'device-width',
     viewportFit: 'cover',
-    themeColor: [
-        { media: '(prefers-color-scheme: light)', color: 'theme.palette.primary.main' },
-        { media: '(prefers-color-scheme: dark)', color: 'theme.palette.primary.main' },
-    ],
+    themeColor: 'theme.palette.primary.main'
 };
 
 export default function RootLayout({
