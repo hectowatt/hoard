@@ -345,6 +345,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 					<AppBar position="fixed" sx={{
 						top: 'auto',
 						bottom: 0,
+						height: 65,
 						transition: theme.transitions.create(["width", "margin"], {
 							easing: theme.transitions.easing.sharp,
 							duration: theme.transitions.duration.enteringScreen,
@@ -360,7 +361,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 							<Box sx={{ width: '100%' }}>
 								<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
 									{navAboveItems.map(({ text, icon, href, dialog, onClick }) => (
-										<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+										<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
 											{dialog ? (
 												<IconButton onClick={() => setLabelDialogOpen(true)} color="inherit">
 													{icon}
@@ -379,19 +380,19 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 										</ListItem>
 									))}
 									<LabelSelectDialog open={isLabelSelectDialogOpen} onClose={() => setIsLabelSelectDialogOpen(false)} data-testid="labelselectdialogbutton" />
-									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
 										<IconButton color="inherit" onClick={() => { setIsLabelSelectDialogOpen(true) }}>
 											<LabelImportantOutlineRoundedIcon />
 										</IconButton>
 									</ListItem>
 									{navBelowItems.map(({ text, icon, href }) => (
-										<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+										<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
 											<IconButton component={Link} href={href} color="inherit">
 												{icon}
 											</IconButton>
 										</ListItem>
 									))}
-									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
 										<IconButton onClick={handleReload} data-testid="reloadbutton" color="inherit">
 											{belowIcons[2]}
 										</IconButton>
@@ -535,7 +536,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 
 				<Box component="main" sx={{
 					flexGrow: 1, p: 3, width: `calc(100% - ${currentDrawerWidth}px)`,
-					overflowX: 'hidden',
+					overflowX: 'hidden', paddingBottom: { xs: 20, md: 5 },
 				}}>
 					<Toolbar />
 					{children}

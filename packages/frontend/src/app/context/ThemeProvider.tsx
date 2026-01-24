@@ -87,7 +87,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                 ? {
                     primary: {
                         main: "#e3a838",
-                        dark: "#565656",
+                        dark: "#000000",
                     },
                     background: {
                         default: "#000000",
@@ -150,7 +150,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                                 // elevationによる色の変化（オーバーレイ）を無効化
                                 backgroundImage: 'none',
                                 backgroundColor: theme.palette.primary.dark,
-                                color: "#000000"
+                                color: "#ececec"
                             }
                             : {
                                 backgroundColor: theme.palette.primary.light,
