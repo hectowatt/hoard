@@ -158,6 +158,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 
 	const logoHorizontalPadding = { xs: 1, sm: 2 };
 	const closedDrawerPaddingRight = logoHorizontalPadding;
+	const isIphone = navigator.userAgent.match(/iPhone/i) ? true : false;
 
 	// サイドバー上部のアイコン
 	const aboveIcons = [<TextSnippetOutlinedIcon data-testid="noteicon" />, <NewLabelOutlinedIcon data-testid="labelicon" />];
@@ -344,7 +345,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 					// スマホの場合はドロワーは表示せずに画面下部にメニューを表示する
 					<AppBar position="fixed" sx={{
 						top: 'auto',
-						bottom: 0,
+						bottom: isIphone ? 'env(safe-area-inset-bottom)' : 0,
 						height: 65,
 						transition: theme.transitions.create(["width", "margin"], {
 							easing: theme.transitions.easing.sharp,
