@@ -1,15 +1,29 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { startTokenRefreshInterval } from "./app/(authenticated)/script/TokenRefresh";
+
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'hoard_refresh_secret';
+const ACCESS_TOKEN_EXPIRY_MS = Number(process.env.ACCESS_TOKEN_EXPIRY) * 1000 || 15 * 60 * 1000; // 15分
+const REFRESH_TOKEN_EXPIRY_MS = Number(process.env.REFRESH_TOKEN_EXPIRY) * 1000; // 7日
+const ACCESS_TOKEN_EXPIRY_SEC = Number(process.env.ACCESS_TOKEN_EXPIRY) || 15 * 60;
+const REFRESH_TOKEN_EXPIRY_SEC = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7 * 24 * 60 * 60;
 
 export async function middleware(req: NextRequest) {
-    const token = req.cookies.get("accessToken")?.value;
-    if (!token) {
-        // /login への遷移の場合はスキップ
-        if (req.nextUrl.pathname === "/login") {
-            return NextResponse.next();
+    const accessToken = req.cookies.get("accessToken")?.value;
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+    if (!accessToken) {
+        if (!refreshToken) {
+            // リフレッシュトークンもない場合はログインへリダイレクト
+            // /login への遷移の場合はスキップ
+            if (req.nextUrl.pathname === "/login") {
+                return NextResponse.next();
+            }
+            return NextResponse.redirect(new URL("/login", req.url));
+        } else {
+            // リフレッシュトークンがある場合はアクセストークンを再発行する
+            startTokenRefreshInterval();
         }
-        return NextResponse.redirect(new URL("/login", req.url));
     }
 
     try {
@@ -18,7 +32,7 @@ export async function middleware(req: NextRequest) {
             console.error("SECRET is not set in environment variables");
             return NextResponse.redirect(new URL("/login", req.url));
         }
-        const { payload } = await jwtVerify(token, secret);
+
         return NextResponse.next();
     } catch (err) {
         console.error("Token verification failed:", err);

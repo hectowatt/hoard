@@ -103,8 +103,8 @@ describe("HoardUserRoutes", () => {
         const cookies = response.headers['set-cookie'];
         expect(cookies).toBeDefined();
 
-        const cookieArray = Array.isArray(cookies) ? cookies : [cookies]; // ← ここが重要
-        const tokenCookie = cookieArray.find(cookie => cookie.startsWith('token='));
+        const cookieArray = Array.isArray(cookies) ? cookies : [cookies];
+        const tokenCookie = cookieArray.find(cookie => cookie.startsWith('accessToken='));
         expect(tokenCookie).toBeDefined();
     });
 
@@ -120,7 +120,7 @@ describe("HoardUserRoutes", () => {
     });
 
     afterAll(async () => {
-        if (hoardserver && hoardserver.listening)  {
+        if (hoardserver && hoardserver.listening) {
             await new Promise<void>((resolve, reject) => {
                 hoardserver.close((err) => (err ? reject(err) : resolve()));
             });

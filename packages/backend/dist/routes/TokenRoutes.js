@@ -36,7 +36,7 @@ router.post('/refresh', async (req, res) => {
         // 新しいアクセストークンを発行
         const newAccessJti = nanoid();
         const newAccessToken = jwt.sign({ id: decoded.id, username: decoded.username, jti: newAccessJti }, SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-        await redis.set(`accessToken:${newAccessJti}`, 'valid', 'EX', 15 * 60);
+        await redis.set(`accessToken:${newAccessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY);
         res.cookie("accessToken", newAccessToken, {
             domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
             httpOnly: true,

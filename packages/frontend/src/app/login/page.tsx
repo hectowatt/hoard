@@ -69,6 +69,8 @@ export default function LoginPage() {
 
         if (response.ok) {
             console.log("create user success!");
+            // リフレッシュトークンの自動開始
+            startTokenRefreshInterval();
             router.push("/");
         } else {
             const errorData = await response.json();
@@ -105,7 +107,7 @@ export default function LoginPage() {
 
     const renderButton = () => {
         if (isChecking) {
-            // チェック中はローディングを表示するか、単にnullを返す
+            // チェック中
             return <Button variant="contained" disabled data-testid="loading">読み込み中...</Button>;
         }
 
