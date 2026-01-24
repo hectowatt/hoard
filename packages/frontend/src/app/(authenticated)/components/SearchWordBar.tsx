@@ -35,6 +35,10 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
                         sm: 350,
                         md: 500,
                     },
+                    height: {
+                        xs: 50,
+                        sm: 55
+                    },
                     backgroundColor: mode === "dark" ? "#060606" : "#ffffff",
                     borderRadius: "5px"
                 }}
