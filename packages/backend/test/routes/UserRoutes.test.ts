@@ -120,7 +120,7 @@ describe("HoardUserRoutes", () => {
     });
 
     afterAll(async () => {
-        if (hoardserver && hoardserver.listening) {
+        if (hoardserver) {
             await new Promise<void>((resolve, reject) => {
                 hoardserver.close((err) => (err ? reject(err) : resolve()));
             });
@@ -129,9 +129,7 @@ describe("HoardUserRoutes", () => {
         if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
             try {
                 await AppDataSource.destroy();
-                console.log("DB connection destroyed");
             } catch (error) {
-                console.error("DB destroy error:", error);
             }
         };
 
