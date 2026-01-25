@@ -20,6 +20,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
+      - name: Load env
+        run: cp .env.test .env
+
       - name: Install dependencies
         run: npm install
 

@@ -7,12 +7,15 @@ import { nanoid } from 'nanoid';
 import { redis } from '../server.js';
 
 const router = Router();
-const SECRET :string = process.env.SECRET || 'hoard_secret';
+const SECRET: string = process.env.SECRET || 'hoard_secret';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'hoard_refresh_secret';
-const ACCESS_TOKEN_EXPIRY_MS = Number(process.env.ACCESS_TOKEN_EXPIRY) * 1000 || 15 * 60 * 1000; // 15分
-const REFRESH_TOKEN_EXPIRY_MS = Number(process.env.REFRESH_TOKEN_EXPIRY) * 1000; // 7日
-const ACCESS_TOKEN_EXPIRY_SEC = Number(process.env.ACCESS_TOKEN_EXPIRY) || 15 * 60;
-const REFRESH_TOKEN_EXPIRY_SEC = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7 * 24 * 60 * 60;
+const ACCESS_TOKEN_EXPIRY_SEC =
+    Number(process.env.ACCESS_TOKEN_EXPIRY ?? 15 * 60);
+const REFRESH_TOKEN_EXPIRY_SEC =
+    Number(process.env.REFRESH_TOKEN_EXPIRY ?? 7 * 24 * 60 * 60);
+const ACCESS_TOKEN_EXPIRY_MS = ACCESS_TOKEN_EXPIRY_SEC * 1000;
+const REFRESH_TOKEN_EXPIRY_MS = REFRESH_TOKEN_EXPIRY_SEC * 1000;
+
 
 
 // 【SELECT】ログイン認証API
@@ -36,7 +39,7 @@ router.post('/', async (req, res) => {
                 id: user.id,
                 username: user.username,
                 jti: accessJti
-            }, SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY_SEC});
+            }, SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY_SEC });
 
             // リフレッシュトークンの生成
             const refreshToken = jwt.sign({
