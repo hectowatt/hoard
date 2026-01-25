@@ -50,7 +50,7 @@ import { useTranslation } from "react-i18next";
 import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import Image from "next/image";
-import { stopTokenRefreshInterval } from "./script/TokenRefresh";
+import { startTokenRefreshInterval, stopTokenRefreshInterval } from "./script/TokenRefresh";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -217,6 +217,15 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 			}
 		}
 	}, [mode]);
+
+	// トークン自動更新
+	React.useEffect(() => {
+		startTokenRefreshInterval();
+
+		return () => {
+			stopTokenRefreshInterval();
+		};
+	}, []);
 
 	const toggleColorMode = () => {
 		setMode(mode === "light" ? "dark" : "light");

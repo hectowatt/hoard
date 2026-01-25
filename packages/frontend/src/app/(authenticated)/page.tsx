@@ -13,7 +13,6 @@ import { useSearchLabelContext } from "./context/SearchLabelProvider";
 import { redirect } from "next/navigation";
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTranslation } from "react-i18next";
-import { startTokenRefreshInterval } from "./script/TokenRefresh";
 
 type Column = {
   id: number;
