@@ -13,6 +13,7 @@ import Image from "next/image";
 import ThemeRegistry from "@/app/context/ThemeProvider";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
+import { startTokenRefreshInterval } from "../(authenticated)/script/TokenRefresh";
 
 
 export default function LoginPage() {
@@ -39,6 +40,11 @@ export default function LoginPage() {
         })
 
         if (response.ok) {
+            // クッキーが確実に設定されるまで待機
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // リフレッシュトークンの自動開始
+            startTokenRefreshInterval();
             console.log("login success!");
             router.push("/");
         } else {
@@ -63,6 +69,8 @@ export default function LoginPage() {
 
         if (response.ok) {
             console.log("create user success!");
+            // リフレッシュトークンの自動開始
+            startTokenRefreshInterval();
             router.push("/");
         } else {
             const errorData = await response.json();
@@ -99,19 +107,19 @@ export default function LoginPage() {
 
     const renderButton = () => {
         if (isChecking) {
-            // チェック中はローディングを表示するか、単にnullを返す
+            // チェック中
             return <Button variant="contained" disabled data-testid="loading">読み込み中...</Button>;
         }
 
         if (isUserExists) {
             return (
-                <Button variant="contained" color="primary" onClick={handleLogin} data-testid="login">
+                <Button variant="contained" onClick={handleLogin} data-testid="login">
                     {t("button_login")}
                 </Button>
             );
         } else {
             return (
-                <Button variant="contained" color="primary" onClick={handleRegistUser} data-testid="makeuser">
+                <Button variant="contained" onClick={handleRegistUser} data-testid="makeuser">
                     {t("button_create_user")}
                 </Button>
             );
@@ -119,82 +127,81 @@ export default function LoginPage() {
     };
 
     return (
-        <ThemeRegistry>
-            <Box sx={{
-                minHeight: "100vh",
-                height: "100%",
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: "#e3a838", p: 2,
-            }}>
-                <Image src="/Hoard_logo.png"
-                    alt="Logo"
-                    width={508}
-                    height={128}
-                    priority
-                    style={{
-                        maxWidth: "100%", height: "auto",
-                        marginBottom: "20px",
-                    }} />
-                <Paper elevation={3} sx={{ p: 4 }} style={{ backgroundColor: "#faebd7" }}>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <TextField
-                            label={t("placeholder_username")}
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            fullWidth
-                            data-testid="username"
-                            variant="outlined"
-                            InputProps={{
-                                sx: {
-                                    color: "#000000",
-                                    "&::placeholder": {
-                                        color: "#9e9e9e",
-                                        opacity: 1, // ブラウザによる自動的な透過を防ぐ
-                                    }
-                                },
-                            }}
-                            InputLabelProps={{
-                                sx: {
-                                    color: "#000000", // 通常時のラベル色
-                                    // ★フォーカスが当たった時もラベル色を黒に固定
-                                    "&.Mui-focused": {
-                                        color: "#000000",
-                                    }
+        <Box sx={{
+            minHeight: "100vh",
+            height: "100%",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "#e3a838", p: 2,
+        }}>
+            <Image src="/Hoard_logo.png"
+                alt="Logo"
+                width={508}
+                height={128}
+                priority
+                style={{
+                    maxWidth: "100%", height: "auto",
+                    marginBottom: "20px",
+                }} />
+            <Paper elevation={3} sx={{ p: 4 }} style={{ backgroundColor: "#faebd7" }}>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    <TextField
+                        label={t("placeholder_username")}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        fullWidth
+                        data-testid="username"
+                        variant="outlined"
+                        InputProps={{
+                            sx: {
+                                color: "#000000",
+                                "&::placeholder": {
+                                    color: "#9e9e9e",
+                                    opacity: 1, // ブラウザによる自動的な透過を防ぐ
                                 }
-                            }}
-                        />
-                        <TextField
-                            label={t("placeholder_password")}
-                            type="password"
-                            value={password}
-                            variant="outlined"
-                            onChange={(e) =>
-                                setPassword(e.target.value)} fullWidth data-testid="password"
-                            InputProps={{
-                                sx: {
+                            },
+                        }}
+                        InputLabelProps={{
+                            sx: {
+                                color: "#000000", // 通常時のラベル色
+                                // ★フォーカスが当たった時もラベル色を黒に固定
+                                "&.Mui-focused": {
                                     color: "#000000",
-                                    "&::placeholder": {
-                                        color: "#9e9e9e",
-                                        opacity: 1, // ブラウザによる自動的な透過を防ぐ
-                                    }
-                                },
-                            }}
-                            InputLabelProps={{
-                                sx: {
-                                    color: "#000000", // 通常時のラベル色
-                                    // ★フォーカスが当たった時もラベル色を黒に固定
-                                    "&.Mui-focused": {
-                                        color: "#000000",
-                                    }
                                 }
-                            }} />
-                        {renderButton()}
-                    </Box>
-                </Paper>
-            </Box>
-        </ThemeRegistry>);
+                            }
+                        }}
+                    />
+                    <TextField
+                        label={t("placeholder_password")}
+                        type="password"
+                        value={password}
+                        variant="outlined"
+                        onChange={(e) =>
+                            setPassword(e.target.value)} fullWidth data-testid="password"
+                        InputProps={{
+                            sx: {
+                                color: "#000000",
+                                "&::placeholder": {
+                                    color: "#9e9e9e",
+                                    opacity: 1, // ブラウザによる自動的な透過を防ぐ
+                                }
+                            },
+                        }}
+                        InputLabelProps={{
+                            sx: {
+                                color: "#000000", // 通常時のラベル色
+                                // ★フォーカスが当たった時もラベル色を黒に固定
+                                "&.Mui-focused": {
+                                    color: "#000000",
+                                }
+                            }
+                        }} />
+                    {renderButton()}
+                </Box>
+            </Paper>
+        </Box>
+    );
 }

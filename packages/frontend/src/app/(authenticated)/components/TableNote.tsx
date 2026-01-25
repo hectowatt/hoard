@@ -70,7 +70,6 @@ const formatDate = (exString: string) => {
 export default function TableNote({ id, title, label_id, is_locked, is_pinned, createdate, updatedate, columns, rowCells, onSave, onDelete, onPin }: tableNoteProps) {
     const [open, setOpen] = React.useState(false);
     const [editTitle, setEditTitle] = React.useState(title);
-    const [isEditing, setIsEditing] = React.useState(false);
     const [editLabel, setEditLabel] = React.useState<string | null>(null);
     const { labels } = useLabelContext();
     const [isLocked, setIsLocked] = React.useState(false);
@@ -193,17 +192,12 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
     const handleOpen = () => {
         setEditTitle(title);
         setOpen(true);
-        setIsEditing(false);
     };
 
     // フォーカスが外れた時の処理
     const handleClose = () => {
-        setIsEditing(false);
         setOpen(false)
     };
-
-    // 編集時
-    const handleEdit = () => setIsEditing(true);
 
     // ロックボタン押下処理
     const handleLock = async () => {
@@ -450,7 +444,6 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                 onDelete(id);
             }
 
-            setIsEditing(false);
             setOpen(false);
 
         } catch (error) {
@@ -523,7 +516,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                 )}
             </Paper>
             <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                <DialogTitle>{isEditing && !isLocked ? (
+                <DialogTitle>{!isLocked ? (
                     <TextField
                         fullWidth
                         value={editTitle}
@@ -533,7 +526,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                     editTitle
                 )}</DialogTitle>
                 <DialogContent>
-                    {isEditing && !isLocked ? (
+                    {!isLocked ? (
                         <TableContainer component={Paper}>
                             <Table>
                                 <TableHead>
@@ -659,8 +652,8 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                         </Typography>
                     )}
                     <Box sx={{ mt: 2, textAlignn: "right" }}>
-                        {isEditing && !isLocked ? (
-                            // 編集中でパスワードロックされていない場合
+                        {!isLocked ? (
+                            // パスワードロックされていない場合
                             <>
                                 <FormControl size="small" sx={{ minWidth: 120 }} data-testid="label-select">
                                     <InputLabel id="select-label">{t("dropdown_labels")}</InputLabel>
@@ -684,34 +677,34 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                     </Select>
                                 </FormControl>
                                 <br />
-                                <Button onClick={handleSaveTableNote} variant="contained" sx={{ mr: 1, mt: 2 }}>{t("button_save")}</Button>
-                                <Button onClick={() => setIsEditing(false)} variant="contained" sx={{ mt: 2 }}>{t("button_cancel")}</Button>
-
-                            </>
-                        ) : !isLocked ? (
-                            // 編集中でなく、パスワードロックされていない場合
-                            <>
-                                <Button onClick={handleEdit} variant="contained" data-testid="button_edit">{t("button_edit")}</Button>
-                                <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }} data-testid="button_delete">{t("button_delete")}</Button>
+                                <Button onClick={handleSaveTableNote} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_save">{t("button_save")}</Button>
+                                <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_cancel">{t("button_cancel")}</Button>
+                                <Button onClick={handleDelete} variant="contained" sx={{
+                                    mr: 1, mt: 2, backgroundColor: "error.main",
+                                    "&:hover": {
+                                        backgroundColor: "#ff4000"
+                                    },
+                                }} data-testid="button_delete">{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
+                                    sx={{ mr: 1, mt: 2, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
                                 </IconButton>
                                 {isPinned ? (
                                     <IconButton
                                         onClick={handlePin}
-                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        sx={{ mr: 1, mt: 2, color: isPinned ? "text.primary" : "action.disabled" }}
                                         data-testid="icon_pinned">
                                         <PushPinIcon />
                                     </IconButton>) : (
                                     <IconButton
                                         onClick={handlePin}
-                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        sx={{ mr: 1, mt: 2, color: isPinned ? "text.primary" : "action.disabled" }}
                                         data-testid="icon_pin">
                                         <PushPinOutlinedIcon />
                                     </IconButton>
                                 )}
+
                             </>
                         ) : (
                             // パスワードロックされている場合

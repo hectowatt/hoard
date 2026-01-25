@@ -80,9 +80,6 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
 
     const theme = createTheme({
         palette: {
-            primary: {
-                main: "#e3a838",
-            },
             tonalOffset: 0,
             // modeがnullの場合は'light'をフォールバックとして使用
             mode: mode || 'light',
@@ -90,13 +87,23 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                 ? {
                     primary: {
                         main: "#e3a838",
+                        dark: "#000000",
                     },
                     background: {
                         default: "#000000",
                         paper: "#000000",
                     },
                 }
-                : {}),
+                : {
+                    primary: {
+                        main: "#e3a838",
+                        light: "#ffffff"
+                    },
+                    background: {
+                        default: "#ffffff",
+                        paper: "#ffffff",
+                    },
+                }),
             action: {
                 disabledOpacity: 0.25
             }
@@ -142,9 +149,13 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                             ? {
                                 // elevationによる色の変化（オーバーレイ）を無効化
                                 backgroundImage: 'none',
-                                backgroundColor: theme.palette.primary.main,
+                                backgroundColor: theme.palette.primary.dark,
+                                color: "#ececec"
                             }
-                            : {},
+                            : {
+                                backgroundColor: theme.palette.primary.light,
+                                color: "#404040"
+                            },
                 },
             },
             MuiOutlinedInput: {
@@ -153,12 +164,12 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                         ...(theme.palette.mode === "dark"
                             ? {
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "#9e9e9e", // ダークモード時の枠線色
+                                    // borderColor: "#9e9e9e", // ダークモード時の枠線色
                                 },
                             }
                             : {
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "#000000", // ライトモード時の枠線色
+                                    // borderColor: "#000000", // ライトモード時の枠線色
                                 },
                             }),
                         "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
@@ -184,6 +195,15 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                         fontSize: "16px",
                         lineHeight: "20px",
                     },
+                },
+            },
+            MuiButton: {
+                styleOverrides: {
+                    root: ({ theme }) => ({
+                        "&:hover": {
+                            backgroundColor: "#e9a33b"
+                        },
+                    }),
                 },
             },
         },

@@ -97,7 +97,7 @@ describe("Note", () => {
         expect(screen.getByText(/2025\/07\/06/)).toBeVisible();
     })
 
-    it("クリックした時、編集、削除、ロックアイコンボタン、ピンボタンが表示される", async () => {
+    it("クリックした時、保存、キャンセル、削除、ロックアイコンボタン、ピンボタンが表示される", async () => {
         render(
             <LocaleProvider>
                 <SnackbarProvider>
@@ -114,7 +114,8 @@ describe("Note", () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         })
 
-        expect(screen.getByTestId("button_edit")).toBeVisible();
+        expect(screen.getByTestId("button_save")).toBeVisible();
+        expect(screen.getByTestId("button_cancel")).toBeVisible();
         expect(screen.getByTestId("button_delete")).toBeVisible();
         expect(screen.getByTestId("unlock")).toBeVisible();
         expect(screen.getByTestId("icon_pin")).toBeVisible();
@@ -135,10 +136,6 @@ describe("Note", () => {
 
         await act(async () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
-        })
-
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
         })
 
         const titleInput = screen.getByDisplayValue("テストノートタイトル") as HTMLInputElement;
@@ -168,9 +165,6 @@ describe("Note", () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         })
 
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
-        })
 
         const contentInput = screen.getByDisplayValue("テストノートcontent") as HTMLInputElement;
 
@@ -198,11 +192,6 @@ describe("Note", () => {
         await act(async () => {
             fireEvent.click(screen.getByText("テストノートタイトル"));
         });
-
-        await act(async () => {
-            fireEvent.click(screen.getByTestId("button_edit"));
-        });
-
 
         fireEvent.mouseDown(screen.getByTestId("label-select").querySelector('[role="combobox"]')!);
 

@@ -6,13 +6,14 @@ import pg from 'pg';
 import { AppDataSource } from './DataSource.js';
 import loginRoutets from './routes/LoginRoutes.js';
 import logoutRoutets from './routes/LogoutRoutes.js';
-import hoardUserRoutes from './routes/HoardUserRoutes.js';
+import userRoutes from './routes/UserRoutes.js';
 import noteRoutes from './routes/NoteRoutes.js';
 import labelRoutes from './routes/LabelRoutes.js';
-import passwordRoutes from './routes/PasswordRoutes.js';
+import notePasswordRoutes from './routes/NotePasswordRoutes.js';
 import tableNoteRoutes from './routes/TableNoteRoutes.js';
 import exportRoutes from './routes/ExportRoutes.js';
 import importRoutes from './routes/ImportRoutes.js';
+import tokenRoutes from './routes/TokenRoutes.js';
 import { LessThan } from 'typeorm';
 import Note from './entities/Note.js';
 import cookieParser from 'cookie-parser';
@@ -70,13 +71,14 @@ app.get('/', (req, res) => {
 });
 app.use('/api/login', loginRoutets);
 app.use('/api/logout', logoutRoutets);
-app.use('/api/user', hoardUserRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/labels', labelRoutes);
-app.use('/api/password', passwordRoutes);
+app.use('/api/password', notePasswordRoutes);
 app.use('/api/tablenotes', tableNoteRoutes);
 app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/token', tokenRoutes);
 // 定期的に古いノートを削除する関数（７日経過したら削除）
 export async function deleteOldNotes() {
     try {

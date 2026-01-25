@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     manifest: '/manifest.json',
 
     appleWebApp: {
-        // statusBarStyle: 'default',
+        statusBarStyle: 'black-translucent',
         title: 'Hoard',
     },
 };
@@ -23,10 +23,7 @@ export const viewport: Viewport = {
     initialScale: 1,
     width: 'device-width',
     viewportFit: 'cover',
-    themeColor: [
-        { media: '(prefers-color-scheme: light)', color: '#e3a838' },
-        { media: '(prefers-color-scheme: dark)', color: '#e3a838' },
-    ],
+    themeColor: 'theme.palette.primary.main'
 };
 
 export default function RootLayout({

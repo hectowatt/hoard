@@ -21,7 +21,7 @@ const SECRET = process.env.SECRET || "hoard_secret";
 describe("POST /logout", () => {
     it("return 200 and clear cookie on successful logout", async () => {
         const token = jwt.sign({ d: 1, username: "testuser", jti: "123" }, SECRET, { expiresIn: '1h' });
-        const response = await request(app).post("/api/logout").set("Cookie", `token=${token}`);
+        const response = await request(app).post("/api/logout").set("Cookie", `accessToken=${token}`);
         expect(response.status).toBe(200);
         expect(response.body.success).toBe(true);
     });

@@ -8,7 +8,14 @@ import { redis } from '../server.js';
 import { nanoid } from 'nanoid';
 
 const router = Router();
-const SECRET = process.env.SECRET || 'hoard_secret';
+const SECRET: string = process.env.SECRET || 'hoard_secret';
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'hoard_refresh_secret';
+const ACCESS_TOKEN_EXPIRY_SEC =
+    Number(process.env.ACCESS_TOKEN_EXPIRY ?? 15 * 60);
+const REFRESH_TOKEN_EXPIRY_SEC =
+    Number(process.env.REFRESH_TOKEN_EXPIRY ?? 7 * 24 * 60 * 60);
+const ACCESS_TOKEN_EXPIRY_MS = ACCESS_TOKEN_EXPIRY_SEC * 1000;
+const REFRESH_TOKEN_EXPIRY_MS = REFRESH_TOKEN_EXPIRY_SEC * 1000;
 
 // 【SELECT】User存在確認API
 router.get('/isexist', async (req, res) => {
@@ -42,14 +49,47 @@ router.post('/', async (req, res) => {
         });
 
         const savedUser = await userRepository.save(newUser);
-        const token = jwt.sign({ id: savedUser.id, username: savedUser.username }, SECRET, { expiresIn: '1d' });
-        res.cookie("token", token, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost", // 本番はenvファイルの設定を使用,
+        const accessJti = nanoid();
+        const refreshJti = nanoid();
+
+        // アクセストークンの生成
+        const accessToken = jwt.sign({
+            id: savedUser.id,
+            username: savedUser.username,
+            jti: accessJti
+        }, SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY_SEC });
+
+        // リフレッシュトークンの生成
+        const refreshToken = jwt.sign({
+            id: savedUser.id,
+            username: savedUser.username,
+            jti: refreshJti
+        }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY_SEC });
+
+        // Redis にトークン情報を保存
+        await redis.set(`accessToken:${accessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC);
+        await redis.set(`refreshToken:${refreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY_SEC);
+        console.log("Access and Refresh tokens created");
+
+
+        //アクセストークンは短命
+        res.cookie("accessToken", accessToken, {
+            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: "/",
-            maxAge: 24 * 60 * 60 * 1000 // 1day
+            maxAge: ACCESS_TOKEN_EXPIRY_MS
+        });
+
+        // リフレッシュトークンは長命
+        res.cookie("refreshToken", refreshToken, {
+            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production' ? true : false,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            path: "/",
+            maxAge: REFRESH_TOKEN_EXPIRY_MS
         });
         res.status(201).json({ message: "regist user success!" });
     } catch (error) {
@@ -62,13 +102,13 @@ router.put('/', authMiddleware, async (req, res) => {
     try {
         const { username, password } = req.body;
         // cookie から JWT を取得
-        const prevToken = req.cookies.token;
-        if (!prevToken) {
+        const prevAccessToken = req.cookies.get("accessToken")?.value;
+        if (!prevAccessToken) {
             return res.status(401).json({ error: "No token provided" });
         }
 
         // JWT を検証・デコード
-        const decoded = jwt.verify(prevToken, SECRET);
+        const decoded = jwt.verify(prevAccessToken, SECRET);
         if (typeof decoded === 'string' || !('id' in decoded)) {
             return res.status(401).json({ error: "Invalid token" });
         }
@@ -110,23 +150,23 @@ router.put('/', authMiddleware, async (req, res) => {
         const savedUser = await userRepository.save(user);
 
         const newJti = nanoid();
-        const newToken = jwt.sign({ id: savedUser.id, username: savedUser.username, jti: newJti }, SECRET, { expiresIn: '1d' });
+        const newAccessToken = jwt.sign({ id: savedUser.id, username: savedUser.username, jti: newJti }, SECRET, { expiresIn: '1d' });
 
         if (oldJti) {
             console.log("old jti is deleted.")
-            await redis.del(`token:${oldJti}`); // 古いトークンを無効化
+            await redis.del(`accessToken:${oldJti}`); // 古いトークンを無効化
         }
 
-        await redis.set(`token:${newJti}`, 'valid', 'EX', 24 * 60 * 60); // 新しいトークンを登録
+        await redis.set(`accessToken:${newJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC); // 新しいトークンを登録
         console.log("new jti is set.")
 
-        res.cookie("token", newToken, {
+        res.cookie("accessToken", newAccessToken, {
             domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost", // 本番はenvファイルの設定を使用,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: "/",
-            maxAge: 24 * 60 * 60 * 1000 // 1day
+            maxAge: ACCESS_TOKEN_EXPIRY_MS
         });
         res.status(201).json({ message: "update user success!" });
     } catch (error) {
@@ -138,13 +178,13 @@ router.put('/', authMiddleware, async (req, res) => {
 router.post('/compare', authMiddleware, async (req, res) => {
     try {
         // cookie から JWT を取得
-        const token = req.cookies.token;
-        if (!token) {
+        const accessToken = req.cookies.get("accessToken")?.value;
+        if (!accessToken) {
             return res.status(401).json({ error: "No token provided" });
         }
 
         // JWT を検証・デコード
-        const decoded = jwt.verify(token, SECRET);
+        const decoded = jwt.verify(accessToken, SECRET);
         const user_id = typeof decoded !== 'string' && 'id' in decoded ? decoded.id : null;
 
         const passwordString = req.body.passwordString;

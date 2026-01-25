@@ -24,7 +24,7 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
             })}>
             <TextField
                 id="outlined-search-bar"
-                variant="outlined"
+                variant="filled"
                 size="medium"
                 placeholder={t("placeholder_search")}
                 value={word}
@@ -35,10 +35,15 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
                         sm: 350,
                         md: 500,
                     },
-                    backgroundColor: mode === "dark" ? "#262626" : "#ffffff",
+                    height: {
+                        xs: 50,
+                        sm: 55
+                    },
+                    backgroundColor: mode === "dark" ? "#060606" : "#ffffff",
                     borderRadius: "5px"
                 }}
                 InputProps={{
+                    disableUnderline: true,
                     endAdornment: (
                         <InputAdornment position="end">
                             <IconButton type="submit" edge="end" aria-label="search" onClick={() => setSearchWord(word)}>
