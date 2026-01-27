@@ -41,6 +41,15 @@ jest.mock("next/navigation", () => ({
     }),
 }));
 
+jest.mock("@/app/context/AuthProvider", () => {
+    return {
+        useAuthContext: () => ({
+            isTokenReady: true,
+            setIsTokenReady: jest.fn(),
+        }),
+        AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+});
 
 // モックデータ
 const mockTableNotes: TableNote[] = [

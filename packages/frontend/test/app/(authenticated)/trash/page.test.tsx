@@ -5,6 +5,7 @@ import "@testing-library/jest-dom";
 import i18n from "@/app/lib/i18n";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
 import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 // モック：TrashNote, TrashTableNote
 jest.mock("@/app/(authenticated)/components/TrashNote", () => (props: any) => (
@@ -30,6 +31,16 @@ jest.mock("next/navigation", () => ({
         prefetch: jest.fn(),
     }),
 }));
+
+jest.mock("@/app/context/AuthProvider", () => {
+    return {
+        useAuthContext: () => ({
+            isTokenReady: true,
+            setIsTokenReady: jest.fn(),
+        }),
+        AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+});
 
 
 // グローバル fetch モック
@@ -79,9 +90,11 @@ describe("Trash Page", () => {
         const label_trash_desc = i18n.t("label_trash_desc");
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <Home />
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <Home />
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -104,9 +117,11 @@ describe("Trash Page", () => {
     it("一括削除ボタンをクリックしたとき、/api/notes/trashと/api/tablenotes/trashにリクエストが送信される", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <Home />
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <Home />
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -121,9 +136,11 @@ describe("Trash Page", () => {
     it("一括復元ボタンをクリックしたとき、/api/notes/trashと/api/tablenotes/trashにリクエストが送信される", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <Home />
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <Home />
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 

@@ -7,6 +7,7 @@ import { NoteProvider } from "@/app/(authenticated)/context/NoteProvider";
 import userEvent from '@testing-library/user-event';
 import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 // ラベルコンテキストのモック
 const mockLabels = [
@@ -49,13 +50,15 @@ describe("CreateLabelDialog", () => {
     it("ダイアログが開いているときタイトルが表示される", () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <CreateLabelDialog open={true} onClose={mockOnClose} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <CreateLabelDialog open={true} onClose={mockOnClose} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         expect(screen.getByTestId("label_input_labels")).toBeVisible();
@@ -65,13 +68,15 @@ describe("CreateLabelDialog", () => {
         const user = userEvent.setup();
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <CreateLabelDialog open={true} onClose={mockOnClose} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <CreateLabelDialog open={true} onClose={mockOnClose} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         const input = screen.getByTestId("label-input");
@@ -82,13 +87,15 @@ describe("CreateLabelDialog", () => {
     it("キャンセルボタンでonCloseが呼ばれる", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <CreateLabelDialog open={true} onClose={mockOnClose} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <CreateLabelDialog open={true} onClose={mockOnClose} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         await act(async () => {

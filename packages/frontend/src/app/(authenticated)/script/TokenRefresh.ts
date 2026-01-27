@@ -47,3 +47,31 @@ export function stopTokenRefreshInterval() {
         console.log('Token refresh interval stoped');
     }
 }
+
+// 即時アクセストークン取得
+export async function getAccessToken() {
+    try {
+        console.log("Token refresh triggered immediately");
+        const response = await fetch('/api/token/refresh', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            console.error('Token refresh failed:', response.statusText);
+            stopTokenRefreshInterval();
+            if (typeof window !== "undefined") {
+                window.location.href = "/login";
+            }
+        } else {
+            console.log('Token refreshed successfully');
+        }
+    } catch (error) {
+        console.error('Token refresh error:', error);
+        stopTokenRefreshInterval();
+        window.location.href = "/login";
+    }
+}

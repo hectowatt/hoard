@@ -7,6 +7,7 @@ import { NoteProvider } from "@/app/(authenticated)/context/NoteProvider";
 import i18n from "@/app/lib/i18n";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
 import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 jest.mock("@/app/(authenticated)/context/LabelProvider", () => {
     return {
@@ -81,13 +82,15 @@ describe("TrashNote", () => {
     it("タイトル・内容・日付・ラベルが表示される", () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashNote {...mockNote} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashNote {...mockNote} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         expect(screen.getByText("テストノート")).toBeVisible();
@@ -100,13 +103,15 @@ describe("TrashNote", () => {
     it("クリックでダイアログが開く", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashNote {...mockNote} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashNote {...mockNote} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         await act(async () => {
@@ -121,13 +126,15 @@ describe("TrashNote", () => {
     it("復元ボタン・削除ボタンが表示される", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashNote {...mockNote} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashNote {...mockNote} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         await act(async () => {
@@ -141,13 +148,15 @@ describe("TrashNote", () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashNote {...mockLockedNote} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashNote {...mockLockedNote} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -157,13 +166,15 @@ describe("TrashNote", () => {
     it("キャンセルボタンを押したときにダイアログが閉じる", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashNote {...mockNote} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashNote {...mockNote} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 

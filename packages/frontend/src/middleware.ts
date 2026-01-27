@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
-    const accessToken = req.cookies.get("accessToken")?.value;
-    if (!accessToken) {
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+    if (!refreshToken) {
         // /login への遷移の場合はスキップ
         if (req.nextUrl.pathname === "/login") {
             return NextResponse.next();
@@ -18,6 +18,10 @@ export async function middleware(req: NextRequest) {
             return NextResponse.redirect(new URL("/login", req.url));
         }
 
+        if (req.nextUrl.pathname === "/login") {
+            // リフレッシュトークンがある状態で/login へアクセスした場合はトップへリダイレクト
+            return NextResponse.redirect(new URL("/", req.url));
+        }
         return NextResponse.next();
     } catch (err) {
         console.error("Token verification failed:", err);

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
+import { useAuthContext } from "@/app/context/AuthProvider";
 
 type note = {
     id: string;
@@ -24,6 +25,7 @@ type noteContextType = {
 
 export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [notes, setNotes] = useState<{ id: string, title: string; content: string; label_id: string; createdate: string; updatedate: string; is_locked: boolean; is_pinned: boolean }[]>([]);
+    const { isTokenReady, setIsTokenReady } = useAuthContext();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
     const router = useRouter();
@@ -51,7 +53,11 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    useEffect(() => { fetchNotes(); }, []);
+    useEffect(() => {
+        if (isTokenReady) {
+            fetchNotes();
+        }
+    }, [isTokenReady]);
 
     return (
         <NoteContext.Provider value={{ notes, setNotes, fetchNotes }}>
