@@ -10,6 +10,7 @@ import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import PushPinIcon from '@mui/icons-material/PushPin';
+import { useScreenSizeContext } from "../context/ScreenSizeProvider";
 
 interface NoteProps {
     id: string;
@@ -63,6 +64,7 @@ export default function Note({
     const [passwordDialogOpen, setPasswordDialogOpen] = React.useState(false);
     const [passwordId, setPasswordId] = React.useState<string | null>(null);
     const [isPinned, setIsPinned] = React.useState(false);
+    const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
     const router = useRouter();
@@ -410,7 +412,7 @@ export default function Note({
                     </Typography>
                 )}
             </Paper>
-            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isSmallScreen}>
                 <DialogTitle>{!isLocked ? (
                     <TextField
                         fullWidth

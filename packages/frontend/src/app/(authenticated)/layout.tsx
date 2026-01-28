@@ -40,6 +40,7 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import Brightness2OutlinedIcon from '@mui/icons-material/Brightness2Outlined';
 import { SearchWordProvider, useSearchWordContext } from "@/app/(authenticated)/context/SearchWordProvider";
 import { SearchLabelProvider, useSearchLabelContext } from "./context/SearchLabelProvider";
+import { ScreenSizeProvider, useScreenSizeContext } from "./context/ScreenSizeProvider";
 import SearchWordBar from "@/app/(authenticated)/components/SearchWordBar";
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import { Router } from "next/router";
@@ -112,15 +113,17 @@ export default function AuthenticatedLayout({
 		<ThemeProvider theme={theme}>
 			<AppRouterCacheProvider>
 				<SearchWordProvider>
-					<SearchLabelProvider>
-						<NoteProvider>
-							<TableNoteProvider>
-								<LabelProvider>
-									<InnerLayout>{children}</InnerLayout>
-								</LabelProvider>
-							</TableNoteProvider>
-						</NoteProvider>
-					</SearchLabelProvider>
+					<ScreenSizeProvider>
+						<SearchLabelProvider>
+							<NoteProvider>
+								<TableNoteProvider>
+									<LabelProvider>
+										<InnerLayout>{children}</InnerLayout>
+									</LabelProvider>
+								</TableNoteProvider>
+							</NoteProvider>
+						</SearchLabelProvider>
+					</ScreenSizeProvider>
 				</SearchWordProvider>
 			</AppRouterCacheProvider >
 		</ThemeProvider >
@@ -134,7 +137,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
 	const theme = useTheme();
 	// md (900px) より小さい画面で isSmallScreen が true になる
-	const [isSmallScreen, setIsSmallScreen] = React.useState(false);
+	const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
 	React.useEffect(() => {
 		const handleResize = () => {
 			setIsSmallScreen(window.innerWidth < theme.breakpoints.values.md);
