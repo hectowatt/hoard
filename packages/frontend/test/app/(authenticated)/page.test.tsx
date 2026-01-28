@@ -22,6 +22,16 @@ jest.mock("react-i18next", () => ({
     }),
 }));
 
+jest.mock("@/app/context/AuthProvider", () => {
+    return {
+        useAuthContext: () => ({
+            isTokenReady: true,
+            setIsTokenReady: jest.fn(),
+        }),
+        AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+});
+
 // 子コンポーネントの簡易モック
 jest.mock("@/app/(authenticated)/components/InputForm", () => {
     return function MockInputForm() {

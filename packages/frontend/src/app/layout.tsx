@@ -1,4 +1,5 @@
 import { SnackbarProvider } from './(authenticated)/context/SnackbarProvider';
+import { AuthProvider } from './context/AuthProvider';
 import { LocaleProvider } from './context/LocaleProvider';
 import ThemeRegistry from './context/ThemeProvider';
 import type { Metadata, Viewport } from 'next';
@@ -37,9 +38,11 @@ export default function RootLayout({
             <body style={{ margin: 0 }}>
                 <ThemeRegistry>
                     <LocaleProvider>
-                        <SnackbarProvider>
-                            {children}
-                        </SnackbarProvider>
+                        <AuthProvider>
+                            <SnackbarProvider>
+                                {children}
+                            </SnackbarProvider>
+                        </AuthProvider>
                     </LocaleProvider>
                 </ThemeRegistry>
             </body>

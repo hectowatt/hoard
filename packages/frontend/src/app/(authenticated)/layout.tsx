@@ -51,7 +51,8 @@ import { useTranslation } from "react-i18next";
 import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import Image from "next/image";
-import { startTokenRefreshInterval, stopTokenRefreshInterval } from "./script/TokenRefresh";
+import { getAccessToken, startTokenRefreshInterval, stopTokenRefreshInterval } from "./script/TokenRefresh";
+import { AuthProvider, useAuthContext } from "../context/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -155,6 +156,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	const [isDrawerOpen, setIsDrawerOpen] = React.useState(!isSmallScreen);
 	const { searchWord, setSearchWord } = useSearchWordContext();
 	const { searchLabel, setSearchLabel } = useSearchLabelContext();
+	const { isTokenReady, setIsTokenReady } = useAuthContext();
 	const { t } = useTranslation();
 	const { showSnackbar } = useSnackbar();
 	const [isLabelSelectDialogOpen, setIsLabelSelectDialogOpen] = React.useState(false);
@@ -228,6 +230,14 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 		return () => {
 			stopTokenRefreshInterval();
 		};
+	}, []);
+
+	React.useEffect(() => {
+		// リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
+		if (!isTokenReady) {
+			getAccessToken();
+			setIsTokenReady(true);
+		}
 	}, []);
 
 	const toggleColorMode = () => {

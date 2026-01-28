@@ -8,6 +8,7 @@ import TrashTableNote from "@/app/(authenticated)/components/TrashTableNote";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
+import { useAuthContext } from "@/app/context/AuthProvider";
 
 
 // 削除されたNoteを表示するページコンテンツ
@@ -15,6 +16,7 @@ export default function Home() {
   const [trashNotes, setTrashNotes] = useState<{ id: string, title: string; content: string; label_id: string, is_locked: boolean, createdate: string; updatedate: string }[]>([]);
   const [trashTableNotes, setTrashTableNotes] = useState<{ id: string, title: string; label_id: string, is_locked: boolean, createdate: string; updatedate: string }[]>([]);
   const { labels, fetchLabels } = useLabelContext();
+  const { isTokenReady, setIsTokenReady } = useAuthContext();
   const { t } = useTranslation();
   const { showSnackbar } = useSnackbar();
   const router = useRouter();
@@ -50,8 +52,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchTrashNotes();
-  }, []);
+    if (isTokenReady) {
+      fetchTrashNotes();
+    }
+  }, [isTokenReady]);
 
   // 画面描画時にDBからテーブルノートを全件取得して表示する
   const fetchTrashTableNotes = async () => {
@@ -79,8 +83,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchTrashTableNotes();
-  }, []);
+    if (isTokenReady) {
+      fetchTrashTableNotes();
+    }
+  }, [isTokenReady]);
 
   // ノート復元ボタン押下時のコールバック関数
   const handleSave = (id: string, newTitle: string, newContent: string, newLabel: string, newUpdateDate: string) => {

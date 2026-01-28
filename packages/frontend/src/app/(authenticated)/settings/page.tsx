@@ -12,6 +12,7 @@ import { useSnackbar } from "../context/SnackbarProvider";
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { styled } from '@mui/material/styles';
+import { useAuthContext } from "@/app/context/AuthProvider";
 
 // 設定ページのコンテンツ
 export default function Home() {
@@ -23,6 +24,7 @@ export default function Home() {
   const [isPasswordExist, setIsPasswordExist] = useState(false);
   const [notePasswordId, setNotePasswordId] = useState("");
   const { t } = useTranslation();
+  const { isTokenReady, setIsTokenReady } = useAuthContext();
   const availableLangs = Object.keys(i18n.options.resources || {});
   const langNames: Record<string, string> = {
     ja: "日本語",
@@ -62,8 +64,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchPasswordStatus();
-  }, []);
+    if (isTokenReady) {
+      fetchPasswordStatus();
+    }
+  }, [isTokenReady]);
 
   // ノートパスワードの保存処理
   const handleSavePassword = async () => {

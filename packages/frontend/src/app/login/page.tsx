@@ -14,6 +14,7 @@ import ThemeRegistry from "@/app/context/ThemeProvider";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { startTokenRefreshInterval } from "../(authenticated)/script/TokenRefresh";
+import { useAuthContext } from "../context/AuthProvider";
 
 
 export default function LoginPage() {
@@ -21,6 +22,7 @@ export default function LoginPage() {
     const [password, setPassword] = React.useState("");
     const [isUserExists, setIsUserExists] = React.useState(false);
     const [isChecking, setIsChecking] = React.useState(true);
+    const { isTokenReady, setIsTokenReady } = useAuthContext();
     const router = useRouter();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
@@ -45,6 +47,7 @@ export default function LoginPage() {
 
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
+            setIsTokenReady(true);
             console.log("login success!");
             router.push("/");
         } else {
@@ -71,6 +74,7 @@ export default function LoginPage() {
             console.log("create user success!");
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
+            setIsTokenReady(true);
             router.push("/");
         } else {
             const errorData = await response.json();

@@ -37,6 +37,16 @@ jest.mock("next/navigation", () => ({
     }),
 }));
 
+jest.mock("@/app/context/AuthProvider", () => {
+    return {
+        useAuthContext: () => ({
+            isTokenReady: true,
+            setIsTokenReady: jest.fn(),
+        }),
+        AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+});
+
 
 // テスト用の子コンポーネント
 const TestComponent = () => {

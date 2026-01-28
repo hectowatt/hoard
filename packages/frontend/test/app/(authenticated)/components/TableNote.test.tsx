@@ -53,6 +53,7 @@ import { NoteProvider } from "@/app/(authenticated)/context/NoteProvider";
 import TableNote from "@/app/(authenticated)/components/TableNote";
 import i18n from "@/app/lib/i18n";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 import { ScreenSizeProvider } from "@/app/(authenticated)/context/ScreenSizeProvider";
 
 
@@ -72,15 +73,17 @@ describe("TableNote", () => {
     it("ピンボタンを押すとアイコンがPushPinOutlinedIconからPushPinIconに変わる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -104,15 +107,17 @@ describe("TableNote", () => {
     it("openがfalseのとき、タイトルと作成日、更新日が表示される", () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -124,15 +129,17 @@ describe("TableNote", () => {
     it("クリックした時、保存、キャンセル、削除、ロックアイコンボタン、ピンボタンが表示される", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -150,15 +157,17 @@ describe("TableNote", () => {
     it("編集モード時、タイトルを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -179,15 +188,17 @@ describe("TableNote", () => {
     it("編集モード時、columnを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -208,15 +219,17 @@ describe("TableNote", () => {
     it("カラムの追加ができる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -239,15 +252,17 @@ describe("TableNote", () => {
     it("編集モード時、rowCellを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -268,15 +283,17 @@ describe("TableNote", () => {
     it("編集モード時、ラベルを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -299,15 +316,17 @@ describe("TableNote", () => {
         render(
             <>
                 <LocaleProvider>
-                    <ScreenSizeProvider>
-                        <SnackbarProvider>
-                            <NoteProvider>
-                                <LabelProvider>
-                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                                </LabelProvider>
-                            </NoteProvider>
-                        </SnackbarProvider>
-                    </ScreenSizeProvider>
+                    <AuthProvider>
+                        <ScreenSizeProvider>
+                            <SnackbarProvider>
+                                <NoteProvider>
+                                    <LabelProvider>
+                                        <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                    </LabelProvider>
+                                </NoteProvider>
+                            </SnackbarProvider>
+                        </ScreenSizeProvider>
+                    </AuthProvider>
                 </LocaleProvider>
                 <input data-testid="dummy-input" placeholder="ダミー入力" />
             </>
@@ -334,15 +353,17 @@ describe("TableNote", () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -375,15 +396,17 @@ describe("TableNote", () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 

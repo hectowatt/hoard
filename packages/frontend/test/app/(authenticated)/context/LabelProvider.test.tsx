@@ -5,6 +5,7 @@ import { LabelProvider, useLabelContext } from "@/app/(authenticated)/context/La
 import "@testing-library/jest-dom";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
 import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
+import { AuthProvider, useAuthContext } from "@/app/context/AuthProvider";
 
 const mockLabels = [
   { id: "1", labelname: "仕事" },
@@ -21,6 +22,16 @@ jest.mock("next/navigation", () => ({
     prefetch: jest.fn(),
   }),
 }));
+
+jest.mock("@/app/context/AuthProvider", () => {
+  return {
+    useAuthContext: () => ({
+      isTokenReady: true,
+      setIsTokenReady: jest.fn(),
+    }),
+    AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  }
+});
 
 
 // テスト用の子コンポーネント
@@ -46,11 +57,13 @@ describe("LabelProvider", () => {
   it("fetchLabelsでAPIからラベルを取得し、コンテキスト経由で提供する", async () => {
     render(
       <LocaleProvider>
-        <SnackbarProvider>
-          <LabelProvider>
-            <TestComponent />
-          </LabelProvider>
-        </SnackbarProvider>
+        <AuthProvider>
+          <SnackbarProvider>
+            <LabelProvider>
+              <TestComponent />
+            </LabelProvider>
+          </SnackbarProvider>
+        </AuthProvider>
       </LocaleProvider>
     );
 

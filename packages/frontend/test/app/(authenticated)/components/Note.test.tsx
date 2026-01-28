@@ -34,6 +34,7 @@ import { NoteProvider } from "@/app/(authenticated)/context/NoteProvider";
 import i18n from "@/app/lib/i18n";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
 import { ScreenSizeProvider } from "@/app/(authenticated)/context/ScreenSizeProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 
 describe("Note", () => {
@@ -52,16 +53,18 @@ describe("Note", () => {
     it("ピンボタンを押すとアイコンがPushPinOutlinedIconからPushPinIconに変わる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         await act(async () => {
@@ -85,15 +88,17 @@ describe("Note", () => {
         render(
             <LocaleProvider>
                 <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                    <AuthProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </AuthProvider>
+                </ScreenSizeProvider >
+            </LocaleProvider >
         );
 
         expect(screen.getByText("テストノートタイトル")).toBeVisible();
@@ -105,16 +110,18 @@ describe("Note", () => {
     it("クリックした時、保存、キャンセル、削除、ロックアイコンボタン、ピンボタンが表示される", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         await act(async () => {
@@ -131,16 +138,18 @@ describe("Note", () => {
     it("編集モード時、タイトルを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         await act(async () => {
@@ -160,16 +169,18 @@ describe("Note", () => {
     it("編集モード時、contentを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         await act(async () => {
@@ -190,16 +201,19 @@ describe("Note", () => {
     it("編集モード時、ラベルを編集できる", async () => {
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         await act(async () => {
@@ -221,16 +235,18 @@ describe("Note", () => {
         render(
             <>
                 <LocaleProvider>
-                    <ScreenSizeProvider>
-                        <SnackbarProvider>
-                            <NoteProvider>
-                                <LabelProvider>
-                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                                </LabelProvider>
-                            </NoteProvider>
-                        </SnackbarProvider>
-                    </ScreenSizeProvider>
-                </LocaleProvider>
+                    <AuthProvider>
+                        <ScreenSizeProvider>
+                            <SnackbarProvider>
+                                <NoteProvider>
+                                    <LabelProvider>
+                                        <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                    </LabelProvider>
+                                </NoteProvider>
+                            </SnackbarProvider>
+                        </ScreenSizeProvider >
+                    </AuthProvider>
+                </LocaleProvider >
                 <input data-testid="dummy-input" placeholder="ダミー入力" />
             </>
         );
@@ -258,16 +274,18 @@ describe("Note", () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         await act(async () => {
@@ -299,16 +317,18 @@ describe("Note", () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
-                <ScreenSizeProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
-                </ScreenSizeProvider>
-            </LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <Note id={"testid111"} title={"テストノートタイトル"} content={"テストノートcontent"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} is_pinned={false} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
         );
 
         expect(await screen.findByText(lockedText)).toBeVisible();

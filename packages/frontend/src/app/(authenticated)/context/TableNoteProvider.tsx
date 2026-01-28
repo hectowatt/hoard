@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/app/context/AuthProvider";
 
 type tableNote = {
     id: string;
@@ -42,6 +43,8 @@ export const TableNoteProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const [tableNotes, setTableNotes] = useState<tableNote[]>([]);
     const { showSnackbar } = useSnackbar();
+    const { isTokenReady, setIsTokenReady } = useAuthContext();
+
     const { t } = useTranslation();
     const router = useRouter();
 
@@ -69,7 +72,11 @@ export const TableNoteProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
     };
 
-    useEffect(() => { fetchTableNotes(); }, []);
+    useEffect(() => {
+        if (isTokenReady) {
+            fetchTableNotes();
+        }
+    }, [isTokenReady]);
 
     return (
         <tableNoteContext.Provider value={{ tableNotes, setTableNotes, fetchTableNotes }}>

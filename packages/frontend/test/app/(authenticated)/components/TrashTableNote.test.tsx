@@ -34,6 +34,7 @@ import TrashTableNote from "@/app/(authenticated)/components/TrashTableNote";
 import i18n from "@/app/lib/i18n";
 import { LocaleProvider } from "@/app/context/LocaleProvider";
 import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 
 describe("TrashTableNote", () => {
@@ -51,13 +52,15 @@ describe("TrashTableNote", () => {
     it("タイトル・内容・日付・ラベルが表示される", () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
         expect(screen.getByText("テストノートタイトル")).toBeVisible();
@@ -69,13 +72,15 @@ describe("TrashTableNote", () => {
     it("openがfalseのとき、タイトルと作成日、更新日が表示される", () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -87,13 +92,15 @@ describe("TrashTableNote", () => {
     it("クリックした時、復元、完全に削除、キャンセルボタンが表示される", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -113,13 +120,15 @@ describe("TrashTableNote", () => {
         render(
             <>
                 <LocaleProvider>
-                    <SnackbarProvider>
-                        <NoteProvider>
-                            <LabelProvider>
-                                <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
-                            </LabelProvider>
-                        </NoteProvider>
-                    </SnackbarProvider>
+                    <AuthProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </AuthProvider>
                 </LocaleProvider>
                 <input data-testid="dummy-input" placeholder="ダミー入力" />
             </>
@@ -148,13 +157,15 @@ describe("TrashTableNote", () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} onRestore={mockOnRestore} onDelete={mockOnDelete} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} onRestore={mockOnRestore} onDelete={mockOnDelete} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
@@ -165,13 +176,15 @@ describe("TrashTableNote", () => {
     it("キャンセルボタンを押したときにダイアログが閉じる", async () => {
         render(
             <LocaleProvider>
-                <SnackbarProvider>
-                    <NoteProvider>
-                        <LabelProvider>
-                            <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
-                        </LabelProvider>
-                    </NoteProvider>
-                </SnackbarProvider>
+                <AuthProvider>
+                    <SnackbarProvider>
+                        <NoteProvider>
+                            <LabelProvider>
+                                <TrashTableNote id={"testid111"} title={"テストノートタイトル"} label_id={"label1"} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={false} onRestore={mockOnRestore} onDelete={mockOnDelete} />
+                            </LabelProvider>
+                        </NoteProvider>
+                    </SnackbarProvider>
+                </AuthProvider>
             </LocaleProvider>
         );
 
