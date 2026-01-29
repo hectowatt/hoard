@@ -413,15 +413,29 @@ export default function Note({
                 )}
             </Paper>
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isSmallScreen}>
-                <DialogTitle>{!isLocked ? (
-                    <TextField
-                        fullWidth
-                        value={editTitle}
-                        onChange={e => setEditTitle(e.target.value)}
-                        variant="standard" />
-                ) : (
-                    title
-                )}</DialogTitle>
+                {isSmallScreen ? (
+                    // スマホ表示のときは上部にpaddingをいれてナビゲーションエリアとかぶるのを防ぐ
+                    <DialogTitle sx={{ pt: 12 }}>{!isLocked ? (
+                        // ロックされていない場合は編集可能
+                        <TextField
+                            fullWidth
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            variant="standard" />
+                    ) : (
+                        // ロックされている場合は表示のみ
+                        title
+                    )}</DialogTitle>) : (
+                    // スマホより大きいサイズの場合はダイアログ表示
+                    <DialogTitle>{!isLocked ? (
+                        <TextField
+                            fullWidth
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            variant="standard" />
+                    ) : (
+                        title
+                    )}</DialogTitle>)}
                 <DialogContent>
                     {!isLocked ? (
                         <TextField
