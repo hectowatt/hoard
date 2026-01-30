@@ -2,11 +2,11 @@
 
 import {
     Box,
-    Button,
     TextField,
     Typography,
     Paper,
 } from "@mui/material";
+import Button from "@mui/material/Button"
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -23,12 +23,14 @@ export default function LoginPage() {
     const [isUserExists, setIsUserExists] = React.useState(false);
     const [isChecking, setIsChecking] = React.useState(true);
     const { isTokenReady, setIsTokenReady } = useAuthContext();
+    const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const router = useRouter();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
 
     // ログイン用処理
     const handleLogin = async () => {
+        setIsLoading(true);
         const response = await fetch("/api/login", {
             method: "POST",
             headers: {
@@ -49,15 +51,18 @@ export default function LoginPage() {
             startTokenRefreshInterval();
             setIsTokenReady(true);
             console.log("login success!");
+            setIsLoading(false);
             router.push("/");
         } else {
             const errorData = await response.json();
-            showSnackbar(t("mmessage_login_failed"), "error");
+            setIsLoading(false);
+            showSnackbar(t("message_login_failed"), "error");
         }
     };
 
     // 初回ユーザ作成処理
     const handleRegistUser = async () => {
+        setIsLoading(true);
         const response = await fetch("/api/user", {
             method: "POST",
             headers: {
@@ -75,9 +80,11 @@ export default function LoginPage() {
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
             setIsTokenReady(true);
+            setIsLoading(false);
             router.push("/");
         } else {
             const errorData = await response.json();
+            setIsLoading(false);
             showSnackbar(t("message_failed_to_create_user") + errorData.message, "error");
         }
     };
@@ -96,9 +103,11 @@ export default function LoginPage() {
                 }
             } else {
                 console.error("failed to check user existence");
+                showSnackbar(t("message_error_occured"), "error");
             };
         } catch (error) {
             console.error("failed to check user existence");
+            showSnackbar(t("message_error_occured"), "error");
         } finally {
             setIsChecking(false);
         }
@@ -116,14 +125,18 @@ export default function LoginPage() {
         }
 
         if (isUserExists) {
+            // ユーザ登録済みの場合
+
             return (
-                <Button variant="contained" onClick={handleLogin} data-testid="login">
+                <Button variant="contained" loading={isLoading} onClick={handleLogin} data-testid="login">
                     {t("button_login")}
                 </Button>
             );
+
         } else {
+            // ユーザ未登録の場合
             return (
-                <Button variant="contained" onClick={handleRegistUser} data-testid="makeuser">
+                <Button variant="contained" loading={isLoading} onClick={handleRegistUser} data-testid="makeuser">
                     {t("button_create_user")}
                 </Button>
             );

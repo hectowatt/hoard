@@ -95,6 +95,20 @@ describe("HoardUserRoutes", () => {
         expect(response.status).toBe(500);
         expect(response.body.message).toBe("Internal server error");
     });
+    it("POST /user without username should return 400 and message", async () => {
+        const response = await request(app)
+            .post("/api/user")
+            .send({ username: null, password: "newpassword" });
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe("username and password must be set");
+    });
+    it("POST /user without password should return 400 and message", async () => {
+        const response = await request(app)
+            .post("/api/user")
+            .send({ username: "testuser", password: "" });
+        expect(response.status).toBe(400);
+        expect(response.body.message).toBe("username and password must be set");
+    });
     afterAll(async () => {
         if (hoardserver) {
             await new Promise((resolve, reject) => {

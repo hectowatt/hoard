@@ -34,6 +34,9 @@ router.get('/', authMiddleware, async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { username, password } = req.body;
+        if (username == "" || username === null || username.trim() === "" || password == "" || password === null || password.trim() === "") {
+            res.status(400).json({ message: "username and password must be set" });
+        }
         const userRepository = AppDataSource.getRepository(HoardUser);
         const password_hashed = await bcrypt.hash(password, 10);
         const newUser = userRepository.create({
