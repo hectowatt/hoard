@@ -697,10 +697,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 <Button onClick={handleSaveTableNote} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_save">{t("button_save")}</Button>
                                 <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_cancel">{t("button_cancel")}</Button>
                                 <Button onClick={handleDelete} variant="contained" sx={{
-                                    mr: 1, mt: 2, backgroundColor: "error.main",
-                                    "&:hover": {
-                                        backgroundColor: "#ff4000"
-                                    },
+                                    mr: 1, mt: 2
                                 }} data-testid="button_delete">{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}
