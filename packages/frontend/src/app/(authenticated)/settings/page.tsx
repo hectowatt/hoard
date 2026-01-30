@@ -13,6 +13,7 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { styled } from '@mui/material/styles';
 import { useAuthContext } from "@/app/context/AuthProvider";
+import { getAccessToken } from "../script/TokenRefresh";
 
 // 設定ページのコンテンツ
 export default function Home() {
@@ -68,6 +69,15 @@ export default function Home() {
       fetchPasswordStatus();
     }
   }, [isTokenReady]);
+
+  React.useEffect(() => {
+    // リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
+    if (!isTokenReady) {
+      getAccessToken().then(() => {
+        setIsTokenReady(true);
+      });
+    }
+  }, [isTokenReady, setIsTokenReady]);
 
   // ノートパスワードの保存処理
   const handleSavePassword = async () => {

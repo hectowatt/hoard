@@ -235,10 +235,11 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	React.useEffect(() => {
 		// リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
 		if (!isTokenReady) {
-			getAccessToken();
-			setIsTokenReady(true);
+			getAccessToken().then(() => {
+				setIsTokenReady(true);
+			});
 		}
-	}, []);
+	}, [isTokenReady, setIsTokenReady]);
 
 	const toggleColorMode = () => {
 		setMode(mode === "light" ? "dark" : "light");

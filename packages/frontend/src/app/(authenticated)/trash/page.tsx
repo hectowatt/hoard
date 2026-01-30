@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useAuthContext } from "@/app/context/AuthProvider";
+import { getAccessToken } from "../script/TokenRefresh";
 
 
 // 削除されたNoteを表示するページコンテンツ
@@ -56,6 +57,15 @@ export default function Home() {
       fetchTrashNotes();
     }
   }, [isTokenReady]);
+
+  React.useEffect(() => {
+    // リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
+    if (!isTokenReady) {
+      getAccessToken().then(() => {
+        setIsTokenReady(true);
+      });
+    }
+  }, [isTokenReady, setIsTokenReady]);
 
   // 画面描画時にDBからテーブルノートを全件取得して表示する
   const fetchTrashTableNotes = async () => {
