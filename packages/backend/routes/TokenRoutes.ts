@@ -81,7 +81,7 @@ router.post('/refresh', async (req, res) => {
         return res.status(200).json({ success: true });
     } catch (error) {
         console.error("Error during token refresh:", error);
-        res.status(500).json({ error: "Token refresh failed" });
+        return res.status(500).json({ error: "Token refresh failed" });
     }
 });
 

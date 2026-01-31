@@ -26,7 +26,7 @@ router.post('/', authMiddleware, async (req, res) => {
         res.status(201).json({ message: "Save password success!", password_id: savedPassword.password_id });
     } catch (error) {
         console.error("Error saving password:", error);
-        res.status(500).json({ error: "Failed to save password" });
+        return res.status(500).json({ error: "Failed to save password" });
     }
 });
 
@@ -44,7 +44,7 @@ router.get('/', authMiddleware, async (req, res) => {
         }
     } catch (error) {
         console.error("Error fetching password:", error);
-        res.status(500).json({ error: 'Failed to fetch notepassword' });
+        return res.status(500).json({ error: 'Failed to fetch notepassword' });
     }
 });
 
@@ -66,7 +66,7 @@ router.put('/', authMiddleware, async (req, res) => {
         res.status(200).json({ message: "Password updated successfully" });
     } catch (error) {
         console.error("Error update password:", error);
-        res.status(500).json({ error: "Failed to update password" });
+        return res.status(500).json({ error: "Failed to update password" });
     }
 });
 
@@ -90,7 +90,7 @@ router.post('/compare', authMiddleware, async (req, res) => {
         res.status(200).json({ isMatch: isMatch });
     } catch (error) {
         console.error("Error fetching password:", error);
-        res.status(500).json({ error: 'Failed to fetch notepassword' });
+        return res.status(500).json({ error: 'Failed to fetch notepassword' });
     }
 });
 

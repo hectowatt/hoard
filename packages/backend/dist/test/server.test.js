@@ -71,7 +71,8 @@ describe('Server Tests', () => {
         jest.clearAllMocks();
     });
     it('GET / should respond with a welcome message', async () => {
-        const response = await request(app).get('/');
+        const response = await request(app).get('/').set('Cookie', ['refreshToken=dummy-valid-token', 'accessToken=dummy-valid-token']);
+        ;
         expect(response.status).toBe(200);
         expect(response.text).toBe('WebSocket Server is running');
     });

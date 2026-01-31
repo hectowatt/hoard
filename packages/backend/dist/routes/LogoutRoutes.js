@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
         }
         catch (e) {
             console.error(e);
-            res.status(500).json({ success: false });
+            return res.status(500).json({ success: false });
         }
     }
     if (refreshToken) {
@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
         }
         catch (e) {
             console.error(e);
-            res.status(500).json({ success: false });
+            return res.status(500).json({ success: false });
         }
     }
     res.clearCookie('accessToken', { path: '/' });

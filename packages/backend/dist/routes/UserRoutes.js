@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (username == "" || username === null || username.trim() === "" || password == "" || password === null || password.trim() === "") {
-            res.status(400).json({ message: "username and password must be set" });
+            return res.status(400).json({ message: "username and password must be set" });
         }
         const userRepository = AppDataSource.getRepository(HoardUser);
         const password_hashed = await bcrypt.hash(password, 10);
@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
         res.status(201).json({ message: "regist user success!" });
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 // 【UPDATE】User更新API
@@ -156,7 +156,7 @@ router.put('/', authMiddleware, async (req, res) => {
         res.status(201).json({ message: "update user success!" });
     }
     catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 // 【SELECT】パスワード比較API（リクエスト値とDBのハッシュ化されたパスワードが一致するかを返却）
@@ -187,7 +187,7 @@ router.post('/compare', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error comparing password:", error);
-        res.status(500).json({ error: 'Failed to compare password' });
+        return res.status(500).json({ error: 'Failed to compare password' });
     }
 });
 export default router;

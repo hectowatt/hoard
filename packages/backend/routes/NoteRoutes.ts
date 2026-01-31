@@ -12,22 +12,21 @@ router.get('/', authMiddleware, async (req, res) => {
     // Notesを全件取得する
     const notes = await noteRepository.find({ where: { is_deleted: false }, order: { updatedate: 'DESC' } });
     notes.map(note => {
-      if(note.is_locked){
+      if (note.is_locked) {
         note.content = "";
       }
     });
     return res.status(200).json(notes);
   } catch (error) {
     console.error("Error fetching notes:", error);
-    res.status(500).json({ error: 'Failed to fetch notes' });
-    return;
+    return res.status(500).json({ error: 'Failed to fetch notes' });
   }
 });
 
 // 【INSERT】Notes登録API
 router.post('/', authMiddleware, async (req, res) => {
-  const { title, content, label, isLocked,isPinned } = req.body;
-  if(!title && !content){
+  const { title, content, label, isLocked, isPinned } = req.body;
+  if (!title && !content) {
     return res.status(400).json({ error: "Must set title or content" });
   }
 
@@ -48,14 +47,14 @@ router.post('/', authMiddleware, async (req, res) => {
     res.status(201).json({ message: "save note success!", note: savedNote });
   } catch (error) {
     console.error("Error saving note:", error);
-    res.status(500).json({ error: "Failed to save note" });
+    return res.status(500).json({ error: "Failed to save note" });
   }
 });
 
 // 【UPDATE】Notes更新用API
 router.put('/', authMiddleware, async (req, res) => {
-  const { id, title, content, label, isLocked,isPinned } = req.body;
-    if(!id || !title && !content){
+  const { id, title, content, label, isLocked, isPinned } = req.body;
+  if (!id || !title && !content) {
     return res.status(400).json({ error: "Must set title or content and must set id" });
   }
 
@@ -76,7 +75,7 @@ router.put('/', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "update note success!", note: updatedNote });
   } catch (error) {
     console.error("Error updating note", error);
-    res.status(500).json({ error: "failed to update notes" });
+    return res.status(500).json({ error: "failed to update notes" });
   }
 });
 
@@ -85,7 +84,7 @@ router.put('/', authMiddleware, async (req, res) => {
 // 【UPDATE】Notesロック状態更新用API
 router.put('/lock', authMiddleware, async (req, res) => {
   const { id, isLocked } = req.body;
-    if(!id || isLocked === null || isLocked === undefined){
+  if (!id || isLocked === null || isLocked === undefined) {
     return res.status(400).json({ error: "Must set id or isLocked" });
   }
   try {
@@ -100,35 +99,35 @@ router.put('/lock', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "Update lock state success!", note: updatedNote });
   } catch (error) {
     console.error("Error updating lock state", error);
-    res.status(500).json({ error: "Failed to update lock state" });
+    return res.status(500).json({ error: "Failed to update lock state" });
   }
 });
 
 // 【UPDATE】Noteピン用API
 router.put('/pin', authMiddleware, async (req, res) => {
   const { id, isPinned } = req.body;
-  if(!id || typeof isPinned !== 'boolean' ){
+  if (!id || typeof isPinned !== 'boolean') {
     return res.status(400).json({ error: "Must set id and pin status" });
   }
   try {
     const noteRepository = AppDataSource.getRepository(Note);
     const result = await noteRepository
-    .createQueryBuilder()
-    .update(Note)
-    .set({
-      is_pinned: isPinned,
-      updatedate: () => '"updatedate"'
-    })
-    .where("id = :id", { id })
-    .execute();
+      .createQueryBuilder()
+      .update(Note)
+      .set({
+        is_pinned: isPinned,
+        updatedate: () => '"updatedate"'
+      })
+      .where("id = :id", { id })
+      .execute();
 
     if (result.affected === 0) {
       return res.status(404).json({ error: "Can't find Note" });
     }
-    res.status(200).json({ message: "Pin note success!"});
+    res.status(200).json({ message: "Pin note success!" });
   } catch (error) {
     console.error("Error pin note", error);
-    res.status(500).json({ error: "Failed to pin notes" });
+    return res.status(500).json({ error: "Failed to pin notes" });
   }
 });
 
@@ -143,7 +142,7 @@ router.get('/trash', authMiddleware, async (req, res) => {
     res.status(200).json(notes);
   } catch (error) {
     console.error("Error fetching trash notes:", error);
-    res.status(500).json({ error: 'Failed to fetch trash notes' });
+    return res.status(500).json({ error: 'Failed to fetch trash notes' });
   }
 });
 
@@ -161,7 +160,7 @@ router.delete('/trash', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "All TrashNote deleted successfully" });
   } catch (error) {
     console.error("Error deleting trashnote:", error);
-    res.status(500).json({ error: "Failed to delete trashnote" });
+    return res.status(500).json({ error: "Failed to delete trashnote" });
   }
 });
 
@@ -189,7 +188,7 @@ router.put('/trash', authMiddleware, async (req, res) => {
 
   } catch (error) {
     console.error("Error restoring notes", error);
-    res.status(500).json({ error: "Failed to restore notes" });
+    return res.status(500).json({ error: "Failed to restore notes" });
   }
 });
 
@@ -199,10 +198,10 @@ router.put('/trash', authMiddleware, async (req, res) => {
 router.delete('/trash/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   console.log("delete id: ", id);
-     if(!id ){
+  if (!id) {
     return res.status(400).json({ error: "Must set id" });
   }
-  
+
   try {
     const noteRepository = AppDataSource.getRepository(Note);
     const note = await noteRepository.findOneBy({ id: id });
@@ -213,7 +212,7 @@ router.delete('/trash/:id', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "Note deleted successfully" });
   } catch (error) {
     console.error("Error deleting note:", error);
-    res.status(500).json({ error: "Failed to delete note" });
+    return res.status(500).json({ error: "Failed to delete note" });
   }
 });
 
@@ -222,7 +221,7 @@ router.delete('/trash/:id', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
   console.log("delete id: ", id);
-  if(!id ){
+  if (!id) {
     return res.status(400).json({ error: "Must set id" });
   }
   try {
@@ -237,14 +236,14 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "Note moved to trash successfully" });
   } catch (error) {
     console.error("Error deleting note:", error);
-    res.status(500).json({ error: "Failed to move note to trash" });
+    return res.status(500).json({ error: "Failed to move note to trash" });
   }
 });
 
 // 【UPDATE】Notes復元用API
 router.put('/trash/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  if(!id ){
+  if (!id) {
     return res.status(400).json({ error: "Must set id" });
   }
   try {
@@ -260,28 +259,28 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "Restore note success!", note: restoredNote });
   } catch (error) {
     console.error("Error restoring note", error);
-    res.status(500).json({ error: "Failed to restore notes" });
+    return res.status(500).json({ error: "Failed to restore notes" });
   }
 });
 
 // 【SELECT】ノート単体取得API
-router.get('/:id', authMiddleware, async (req,res) => {
-  const {id} = req.params;
-  if(!id){
-    return res.status(400).json({error: "Must set id"});
+router.get('/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({ error: "Must set id" });
   }
 
-  try{
+  try {
     const noteRepository = AppDataSource.getRepository(Note);
-    const note = await noteRepository.findOneBy({id:id});
-    if(!note){
-      return res.status(404).json({error: "Note not found"});
+    const note = await noteRepository.findOneBy({ id: id });
+    if (!note) {
+      return res.status(404).json({ error: "Note not found" });
     }
-    if(note.is_locked){
+    if (note.is_locked) {
       note.content = "";
     }
     return res.status(200).json(note);
-  }catch(error){}
+  } catch (error) { }
 });
 
 
