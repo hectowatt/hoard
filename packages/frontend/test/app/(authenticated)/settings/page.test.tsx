@@ -4,11 +4,22 @@ import "@testing-library/jest-dom";
 import Home from "@/app/(authenticated)/settings/page";
 import i18n from "@/app/lib/i18n";
 import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 const mockBlob = new Blob(["mock zip data"], { type: "application/zip" });
 const mockZipFile = new File(["mock zip data"], "test.zip", { type: "application/zip" });
 global.URL.createObjectURL = jest.fn(() => "mock-object-url");
 global.URL.revokeObjectURL = jest.fn();
+
+jest.mock("@/app/context/AuthProvider", () => {
+    return {
+        useAuthContext: () => ({
+            isTokenReady: true,
+            setIsTokenReady: jest.fn(),
+        }),
+        AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+});
 
 // グローバル fetch モック
 beforeEach(() => {
@@ -52,9 +63,11 @@ describe("Setting Page", () => {
         const label_note_password_settings = i18n.t("label_note_password_settings");
         const label_note_password_settings_desc = i18n.t("label_note_password_settings_desc");
         render(
-            <SnackbarProvider>
-                <Home />
-            </SnackbarProvider>
+            <AuthProvider>
+                <SnackbarProvider>
+                    <Home />
+                </SnackbarProvider>
+            </AuthProvider>
         );
 
         expect(screen.getByText(label_settings)).toBeInTheDocument();
@@ -77,9 +90,11 @@ describe("Setting Page", () => {
 
     it("ユーザ情報保存ボタンをクリックしたとき、/api/userにリクエストが送信される", async () => {
         render(
-            <SnackbarProvider>
-                <Home />
-            </SnackbarProvider>
+            <AuthProvider>
+                <SnackbarProvider>
+                    <Home />
+                </SnackbarProvider>
+            </AuthProvider>
         );
 
         const userNameInput = await screen.getByTestId("usernameinput");
@@ -96,9 +111,11 @@ describe("Setting Page", () => {
 
     it("ノートパスワード保存ボタンをクリックしたとき、/api/passwordにリクエストが送信される", async () => {
         render(
-            <SnackbarProvider>
-                <Home />
-            </SnackbarProvider>
+            <AuthProvider>
+                <SnackbarProvider>
+                    <Home />
+                </SnackbarProvider>
+            </AuthProvider>
         );
 
         const notePasswordInput = await screen.getByTestId("notepasswordinput");
@@ -114,9 +131,11 @@ describe("Setting Page", () => {
 
     it("ダウンロードボタンをクリックしたとき、/api/exportにリクエストが送信される", async () => {
         render(
-            <SnackbarProvider>
-                <Home />
-            </SnackbarProvider>
+            <AuthProvider>
+                <SnackbarProvider>
+                    <Home />
+                </SnackbarProvider>
+            </AuthProvider>
         );
 
         const downloadButton = await screen.findByTestId("button-download");
@@ -128,9 +147,11 @@ describe("Setting Page", () => {
 
     it("データアップロードボタンでファイルを選択したとき、/api/importにリクエストが送信される", async () => {
         render(
-            <SnackbarProvider>
-                <Home />
-            </SnackbarProvider>
+            <AuthProvider>
+                <SnackbarProvider>
+                    <Home />
+                </SnackbarProvider>
+            </AuthProvider>
         );
 
         // 初期ロード（fetchPasswordStatus）の完了を待つ

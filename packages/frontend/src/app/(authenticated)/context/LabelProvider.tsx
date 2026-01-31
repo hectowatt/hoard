@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useCallback } from "react";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/app/context/AuthProvider";
+import { Istok_Web } from "next/font/google";
 
 // ラベルをグローバルに保持するためのコンテキストプロバイダー
 type Label = { id: string; labelname: string };
@@ -21,6 +23,7 @@ export const useLabelContext = () => {
 
 export const LabelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [labels, setLabels] = useState<Label[]>([]);
+    const { isTokenReady, setIsTokenReady } = useAuthContext();
     const { showSnackbar } = useSnackbar();
     const { t } = useTranslation();
     const router = useRouter();
@@ -47,7 +50,11 @@ export const LabelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     }, []);
 
-    React.useEffect(() => { fetchLabels(); }, [fetchLabels]);
+    React.useEffect(() => {
+        if (isTokenReady) {
+            fetchLabels();
+        }
+    }, [isTokenReady]);
 
     return (
         <LabelContext.Provider value={{ labels, fetchLabels }}>

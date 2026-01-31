@@ -98,7 +98,7 @@ router.post("/", upload.single("file"), async (req, res) => {
             await fs.unlink(filePath);
         }
         catch { }
-        res.status(500).json({ message: "Import failed" });
+        return res.status(500).json({ message: "Import failed" });
     }
 });
 export default router;

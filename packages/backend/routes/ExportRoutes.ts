@@ -54,7 +54,7 @@ router.get("/", async (req, res) => {
         await archive.finalize();
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Export failed" });
+        return res.status(500).json({ message: "Export failed" });
     }
 });
 

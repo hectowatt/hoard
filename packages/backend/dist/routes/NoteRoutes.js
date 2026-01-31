@@ -18,8 +18,7 @@ router.get('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching notes:", error);
-        res.status(500).json({ error: 'Failed to fetch notes' });
-        return;
+        return res.status(500).json({ error: 'Failed to fetch notes' });
     }
 });
 // 【INSERT】Notes登録API
@@ -45,7 +44,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error saving note:", error);
-        res.status(500).json({ error: "Failed to save note" });
+        return res.status(500).json({ error: "Failed to save note" });
     }
 });
 // 【UPDATE】Notes更新用API
@@ -72,7 +71,7 @@ router.put('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error updating note", error);
-        res.status(500).json({ error: "failed to update notes" });
+        return res.status(500).json({ error: "failed to update notes" });
     }
 });
 // 【UPDATE】Notesロック状態更新用API
@@ -94,7 +93,7 @@ router.put('/lock', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error updating lock state", error);
-        res.status(500).json({ error: "Failed to update lock state" });
+        return res.status(500).json({ error: "Failed to update lock state" });
     }
 });
 // 【UPDATE】Noteピン用API
@@ -121,7 +120,7 @@ router.put('/pin', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error pin note", error);
-        res.status(500).json({ error: "Failed to pin notes" });
+        return res.status(500).json({ error: "Failed to pin notes" });
     }
 });
 /************ TrashNote ************/
@@ -134,7 +133,7 @@ router.get('/trash', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching trash notes:", error);
-        res.status(500).json({ error: 'Failed to fetch trash notes' });
+        return res.status(500).json({ error: 'Failed to fetch trash notes' });
     }
 });
 // 【DELETE】TrashNote一括削除用API
@@ -152,7 +151,7 @@ router.delete('/trash', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting trashnote:", error);
-        res.status(500).json({ error: "Failed to delete trashnote" });
+        return res.status(500).json({ error: "Failed to delete trashnote" });
     }
 });
 // 【UPDATE】Notes一括復元用API
@@ -176,7 +175,7 @@ router.put('/trash', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error restoring notes", error);
-        res.status(500).json({ error: "Failed to restore notes" });
+        return res.status(500).json({ error: "Failed to restore notes" });
     }
 });
 // ******************* 動的パラメータ持ち *******************
@@ -198,7 +197,7 @@ router.delete('/trash/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting note:", error);
-        res.status(500).json({ error: "Failed to delete note" });
+        return res.status(500).json({ error: "Failed to delete note" });
     }
 });
 // 【DELETE】Notes削除用API
@@ -221,7 +220,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting note:", error);
-        res.status(500).json({ error: "Failed to move note to trash" });
+        return res.status(500).json({ error: "Failed to move note to trash" });
     }
 });
 // 【UPDATE】Notes復元用API
@@ -244,7 +243,7 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error restoring note", error);
-        res.status(500).json({ error: "Failed to restore notes" });
+        return res.status(500).json({ error: "Failed to restore notes" });
     }
 });
 // 【SELECT】ノート単体取得API

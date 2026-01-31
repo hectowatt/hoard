@@ -40,6 +40,7 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 import Brightness2OutlinedIcon from '@mui/icons-material/Brightness2Outlined';
 import { SearchWordProvider, useSearchWordContext } from "@/app/(authenticated)/context/SearchWordProvider";
 import { SearchLabelProvider, useSearchLabelContext } from "./context/SearchLabelProvider";
+import { ScreenSizeProvider, useScreenSizeContext } from "./context/ScreenSizeProvider";
 import SearchWordBar from "@/app/(authenticated)/components/SearchWordBar";
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import { Router } from "next/router";
@@ -50,7 +51,8 @@ import { useTranslation } from "react-i18next";
 import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import Image from "next/image";
-import { stopTokenRefreshInterval } from "./script/TokenRefresh";
+import { getTokenRefresh, startTokenRefreshInterval, stopTokenRefreshInterval } from "./script/TokenRefresh";
+import { AuthProvider, useAuthContext } from "../context/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -112,15 +114,17 @@ export default function AuthenticatedLayout({
 		<ThemeProvider theme={theme}>
 			<AppRouterCacheProvider>
 				<SearchWordProvider>
-					<SearchLabelProvider>
-						<NoteProvider>
-							<TableNoteProvider>
-								<LabelProvider>
-									<InnerLayout>{children}</InnerLayout>
-								</LabelProvider>
-							</TableNoteProvider>
-						</NoteProvider>
-					</SearchLabelProvider>
+					<ScreenSizeProvider>
+						<SearchLabelProvider>
+							<NoteProvider>
+								<TableNoteProvider>
+									<LabelProvider>
+										<InnerLayout>{children}</InnerLayout>
+									</LabelProvider>
+								</TableNoteProvider>
+							</NoteProvider>
+						</SearchLabelProvider>
+					</ScreenSizeProvider>
 				</SearchWordProvider>
 			</AppRouterCacheProvider >
 		</ThemeProvider >
@@ -134,7 +138,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
 	const theme = useTheme();
 	// md (900px) より小さい画面で isSmallScreen が true になる
-	const [isSmallScreen, setIsSmallScreen] = React.useState(false);
+	const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
 	React.useEffect(() => {
 		const handleResize = () => {
 			setIsSmallScreen(window.innerWidth < theme.breakpoints.values.md);
@@ -152,6 +156,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	const [isDrawerOpen, setIsDrawerOpen] = React.useState(!isSmallScreen);
 	const { searchWord, setSearchWord } = useSearchWordContext();
 	const { searchLabel, setSearchLabel } = useSearchLabelContext();
+	const { isTokenReady, setIsTokenReady } = useAuthContext();
 	const { t } = useTranslation();
 	const { showSnackbar } = useSnackbar();
 	const [isLabelSelectDialogOpen, setIsLabelSelectDialogOpen] = React.useState(false);
@@ -217,6 +222,24 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 			}
 		}
 	}, [mode]);
+
+	// トークン自動更新
+	React.useEffect(() => {
+		startTokenRefreshInterval();
+
+		return () => {
+			stopTokenRefreshInterval();
+		};
+	}, []);
+
+	React.useEffect(() => {
+		// リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
+		if (!isTokenReady) {
+			getTokenRefresh().then(() => {
+				setIsTokenReady(true);
+			});
+		}
+	}, [isTokenReady, setIsTokenReady]);
 
 	const toggleColorMode = () => {
 		setMode(mode === "light" ? "dark" : "light");

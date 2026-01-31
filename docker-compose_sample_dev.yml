@@ -37,14 +37,19 @@ services:
     networks:
       hoard_network:
 
+
   redis:
     image: redis:7
     container_name: hoard_redis
     restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    command: redis-server --appendonly yes
     ports:
       - "6380:6379"
     networks:
       hoard_network:
+
 
   nginx:
     image: nginx:latest
@@ -60,6 +65,7 @@ services:
     networks:
       hoard_network:
 
+
 networks:
   hoard_network:
     name: hoard_network
@@ -70,3 +76,4 @@ networks:
 
 volumes:
   pgdata:
+  redisdata:

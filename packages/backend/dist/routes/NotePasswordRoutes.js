@@ -21,7 +21,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error saving password:", error);
-        res.status(500).json({ error: "Failed to save password" });
+        return res.status(500).json({ error: "Failed to save password" });
     }
 });
 // 【SELECT】ノートパスワードid取得API
@@ -40,7 +40,7 @@ router.get('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching password:", error);
-        res.status(500).json({ error: 'Failed to fetch notepassword' });
+        return res.status(500).json({ error: 'Failed to fetch notepassword' });
     }
 });
 // 【UPDATE】ノートパスワード更新API
@@ -61,7 +61,7 @@ router.put('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error update password:", error);
-        res.status(500).json({ error: "Failed to update password" });
+        return res.status(500).json({ error: "Failed to update password" });
     }
 });
 // 【SELECT】ノートパスワード比較API（リクエスト値とDBのハッシュ化されたパスワードが一致するかを返却）
@@ -84,7 +84,7 @@ router.post('/compare', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching password:", error);
-        res.status(500).json({ error: 'Failed to fetch notepassword' });
+        return res.status(500).json({ error: 'Failed to fetch notepassword' });
     }
 });
 export default router;

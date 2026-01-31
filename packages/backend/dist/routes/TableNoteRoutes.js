@@ -103,7 +103,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error saving TableNote:", error);
-        res.status(500).json({ error: "Failed to save TableNote" });
+        return res.status(500).json({ error: "Failed to save TableNote" });
     }
 });
 // 【SELECT】テーブルノート取得API
@@ -155,8 +155,7 @@ router.get('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching TableNote:", error);
-        res.status(500).json({ error: 'Failed to fetch TableNote' });
-        return;
+        return res.status(500).json({ error: 'Failed to fetch TableNote' });
     }
 });
 // 【UPDATE】テーブルノート更新API
@@ -299,7 +298,7 @@ router.put('/', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error update TableNote:", error);
-        res.status(500).json({ error: "Failed to update TableNote" });
+        return res.status(500).json({ error: "Failed to update TableNote" });
     }
 });
 // 【UPDATE】TableNoteロック状態更新用API
@@ -321,7 +320,7 @@ router.put('/lock', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error updating lock state", error);
-        res.status(500).json({ error: "Failed to update lock state" });
+        return res.status(500).json({ error: "Failed to update lock state" });
     }
 });
 // 【UPDATE】TableNoteピン用API
@@ -348,7 +347,7 @@ router.put('/pin', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error pin TableNote", error);
-        res.status(500).json({ error: "Failed to pin TableNote" });
+        return res.status(500).json({ error: "Failed to pin TableNote" });
     }
 });
 /************ TrashNote ************/
@@ -361,7 +360,7 @@ router.get('/trash', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching trash TableNotes:", error);
-        res.status(500).json({ error: 'Failed to fetch trash TableNotes' });
+        return res.status(500).json({ error: 'Failed to fetch trash TableNotes' });
     }
 });
 // 【DELETE】TrashTableNote一括削除用API
@@ -379,7 +378,7 @@ router.delete('/trash', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting TrashTableNote:", error);
-        res.status(500).json({ error: "Failed to delete all TrashTableNote" });
+        return res.status(500).json({ error: "Failed to delete all TrashTableNote" });
     }
 });
 // 【UPDATE】TableNotes一括復元用API
@@ -403,7 +402,7 @@ router.put('/trash', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error restoring tablenotes", error);
-        res.status(500).json({ error: "Failed to restore tablenotes" });
+        return res.status(500).json({ error: "Failed to restore tablenotes" });
     }
 });
 // ******************* 動的パラメータ持ち *******************
@@ -422,7 +421,7 @@ router.delete('/trash/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting TableNote:", error);
-        res.status(500).json({ error: "Failed to delete TableNote" });
+        return res.status(500).json({ error: "Failed to delete TableNote" });
     }
 });
 // 【DELETE】Notes削除用API
@@ -445,7 +444,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error deleting TableNote:", error);
-        res.status(500).json({ error: "Failed moved to trash" });
+        return res.status(500).json({ error: "Failed moved to trash" });
     }
 });
 // 【UPDATE】TrashTableNote復元用API
@@ -468,7 +467,7 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error restoring TableNote", error);
-        res.status(500).json({ error: "Failed to restore TableNote" });
+        return res.status(500).json({ error: "Failed to restore TableNote" });
     }
 });
 // 【SELECT】テーブルノート単体取得API
@@ -531,8 +530,7 @@ router.get('/:id', authMiddleware, async (req, res) => {
     }
     catch (error) {
         console.error("Error fetching TableNote:", error);
-        res.status(500).json({ error: 'Failed to fetch TableNote' });
-        return;
+        return res.status(500).json({ error: 'Failed to fetch TableNote' });
     }
 });
 export default router;

@@ -24,6 +24,7 @@ import { useSnackbar } from "../context/SnackbarProvider";
 import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import PushPinIcon from '@mui/icons-material/PushPin';
+import { useScreenSizeContext } from "../context/ScreenSizeProvider";
 
 interface Column {
     id: number;
@@ -79,6 +80,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
     const [editColumns, setEditColumns] = useState<Column[]>(columns);
     const [editRowCells, setEditRowCells] = useState<RowCell[][]>(rowCells);
     const [isPinned, setIsPinned] = React.useState(false);
+    const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
     const router = useRouter();
@@ -515,16 +517,31 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                     </Typography>
                 )}
             </Paper>
-            <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-                <DialogTitle>{!isLocked ? (
-                    <TextField
-                        fullWidth
-                        value={editTitle}
-                        onChange={e => setEditTitle(e.target.value)}
-                        variant="standard" />
-                ) : (
-                    editTitle
-                )}</DialogTitle>
+            <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth fullScreen={isSmallScreen}>
+                {isSmallScreen ? (
+                    //スマホ表示のときは上部にpaddingをいれてナビゲーションエリアとかぶるのを防ぐ
+                    <DialogTitle sx={{ pt: 12 }}>{!isLocked ? (
+                        // ロックされていないときは編集可能
+                        <TextField
+                            fullWidth
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            variant="standard" />
+                    ) : (
+                        // ロックされているときは表示のみ
+                        editTitle
+                    )}</DialogTitle>) : (
+                    // スマホより大きい画面のときはダイアログ表示
+                    <DialogTitle>{!isLocked ? (
+                        <TextField
+                            fullWidth
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            variant="standard" />
+                    ) : (
+                        editTitle
+                    )}</DialogTitle>
+                )}
                 <DialogContent>
                     {!isLocked ? (
                         <TableContainer component={Paper}>
@@ -680,10 +697,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 <Button onClick={handleSaveTableNote} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_save">{t("button_save")}</Button>
                                 <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_cancel">{t("button_cancel")}</Button>
                                 <Button onClick={handleDelete} variant="contained" sx={{
-                                    mr: 1, mt: 2, backgroundColor: "error.main",
-                                    "&:hover": {
-                                        backgroundColor: "#ff4000"
-                                    },
+                                    mr: 1, mt: 2
                                 }} data-testid="button_delete">{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}

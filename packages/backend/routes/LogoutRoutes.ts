@@ -11,7 +11,7 @@ const REFRESH_SECRET = process.env.REFRESH_SECRET || 'hoard_refresh_secret';
 router.post('/', async (req, res) => {
     const accessToken = req.cookies.accessToken;
     const refreshToken = req.cookies.refreshToken;
-    
+
     if (accessToken) {
         try {
             const decoded = jwt.verify(accessToken, SECRET);
@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
             }
         } catch (e) {
             console.error(e);
-            res.status(500).json({ success: false });
+            return res.status(500).json({ success: false });
         }
     }
 
@@ -32,7 +32,7 @@ router.post('/', async (req, res) => {
             }
         } catch (e) {
             console.error(e);
-            res.status(500).json({ success: false });
+            return res.status(500).json({ success: false });
         }
     }
     res.clearCookie('accessToken', { path: '/' });

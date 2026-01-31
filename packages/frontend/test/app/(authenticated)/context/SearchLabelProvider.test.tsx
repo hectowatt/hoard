@@ -1,4 +1,3 @@
-// NoteProvider.test.tsx
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { SearchLabelProvider, useSearchLabelContext } from "@/app/(authenticated)/context/SearchLabelProvider";

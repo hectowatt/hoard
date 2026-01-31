@@ -13,7 +13,7 @@ import { useSearchLabelContext } from "./context/SearchLabelProvider";
 import { redirect } from "next/navigation";
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTranslation } from "react-i18next";
-import { startTokenRefreshInterval } from "./script/TokenRefresh";
+import { useAuthContext } from "../context/AuthProvider";
 
 type Column = {
   id: number;
@@ -36,6 +36,7 @@ export default function Home() {
   const { tableNotes, setTableNotes, fetchTableNotes } = useTableNoteContext();
   const { searchWord } = useSearchWordContext();
   const { searchLabel } = useSearchLabelContext();
+  const { isTokenReady, setIsTokenReady } = useAuthContext();
   const { t } = useTranslation();
 
   // label_idに紐づくlabelnameを取得する
@@ -71,9 +72,11 @@ export default function Home() {
   const unpinnedTableNotes = filterdTableNotes.filter(tableNote => !tableNote.is_pinned);
 
   useEffect(() => {
-    fetchNotes();
-    fetchTableNotes();
-  }, []);
+    if (isTokenReady) {
+      fetchNotes();
+      fetchTableNotes();
+    }
+  }, [isTokenReady]);
 
 
   // ノート初期登録時のコールバック関数

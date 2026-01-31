@@ -26,11 +26,11 @@ router.post('/', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error saving label:", error);
     if (error.code === '22001') {
-      res.status(400).json({ error: "Label name is too long" });
+      return res.status(400).json({ error: "Label name is too long" });
     } else if (error.code === '23505') {
-      res.status(400).json({ error: "Label name must be unique" });
+      return res.status(400).json({ error: "Label name must be unique" });
     } else {
-      res.status(500).json({ error: "Failed to save label" });
+      return res.status(500).json({ error: "Failed to save label" });
     }
   }
 });
@@ -44,8 +44,7 @@ router.get('/', authMiddleware, async (req, res) => {
     return res.status(200).json(labels);
   } catch (error) {
     console.error("Error fetching labels:", error);
-    res.status(500).json({ error: 'Failed to fetch labels' });
-    return;
+    return res.status(500).json({ error: 'Failed to fetch labels' });
   }
 });
 
@@ -53,7 +52,7 @@ router.get('/', authMiddleware, async (req, res) => {
 router.delete('/:id', authMiddleware, async (req, res) => {
   const id: string = req.params?.id ?? req.body?.id;
   console.log("delete label id: ", id);
-  if(!id ){
+  if (!id) {
     return res.status(400).json({ error: "Must set id" });
   }
   try {
@@ -67,7 +66,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.status(200).json({ message: "Label deleted successfully" });
   } catch (error) {
     console.error("Error deleting label:", error);
-    res.status(500).json({ error: "Failed to delete label" });
+    return res.status(500).json({ error: "Failed to delete label" });
   }
 });
 

@@ -39,6 +39,9 @@ router.get('/', authMiddleware, async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { username, password } = req.body;
+        if (username == "" || username === null || username.trim() === "" || password == "" || password === null || password.trim() === "") {
+            return res.status(400).json({ message: "username and password must be set" })
+        }
         const userRepository = AppDataSource.getRepository(HoardUser);
         const password_hashed = await bcrypt.hash(password, 10);
         const newUser = userRepository.create({
@@ -93,7 +96,7 @@ router.post('/', async (req, res) => {
         });
         res.status(201).json({ message: "regist user success!" });
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 
@@ -170,7 +173,7 @@ router.put('/', authMiddleware, async (req, res) => {
         });
         res.status(201).json({ message: "update user success!" });
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
 
@@ -206,7 +209,7 @@ router.post('/compare', authMiddleware, async (req, res) => {
         res.status(200).json({ isMatch });
     } catch (error) {
         console.error("Error comparing password:", error);
-        res.status(500).json({ error: 'Failed to compare password' });
+        return res.status(500).json({ error: 'Failed to compare password' });
     }
 });
 

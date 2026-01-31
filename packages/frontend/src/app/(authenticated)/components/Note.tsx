@@ -10,6 +10,7 @@ import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import PushPinIcon from '@mui/icons-material/PushPin';
+import { useScreenSizeContext } from "../context/ScreenSizeProvider";
 
 interface NoteProps {
     id: string;
@@ -63,6 +64,7 @@ export default function Note({
     const [passwordDialogOpen, setPasswordDialogOpen] = React.useState(false);
     const [passwordId, setPasswordId] = React.useState<string | null>(null);
     const [isPinned, setIsPinned] = React.useState(false);
+    const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
     const router = useRouter();
@@ -410,16 +412,30 @@ export default function Note({
                     </Typography>
                 )}
             </Paper>
-            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-                <DialogTitle>{!isLocked ? (
-                    <TextField
-                        fullWidth
-                        value={editTitle}
-                        onChange={e => setEditTitle(e.target.value)}
-                        variant="standard" />
-                ) : (
-                    title
-                )}</DialogTitle>
+            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth fullScreen={isSmallScreen}>
+                {isSmallScreen ? (
+                    // スマホ表示のときは上部にpaddingをいれてナビゲーションエリアとかぶるのを防ぐ
+                    <DialogTitle sx={{ pt: 12 }}>{!isLocked ? (
+                        // ロックされていない場合は編集可能
+                        <TextField
+                            fullWidth
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            variant="standard" />
+                    ) : (
+                        // ロックされている場合は表示のみ
+                        title
+                    )}</DialogTitle>) : (
+                    // スマホより大きいサイズの場合はダイアログ表示
+                    <DialogTitle>{!isLocked ? (
+                        <TextField
+                            fullWidth
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            variant="standard" />
+                    ) : (
+                        title
+                    )}</DialogTitle>)}
                 <DialogContent>
                     {!isLocked ? (
                         <TextField
@@ -474,10 +490,7 @@ export default function Note({
                                 <Button onClick={handleSave} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_save">{t("button_save")}</Button>
                                 <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_cancel">{t("button_cancel")}</Button>
                                 <Button onClick={handleDelete} variant="contained" sx={{
-                                    mr: 1, mt: 2, backgroundColor: "error.main",
-                                    "&:hover": {
-                                        backgroundColor: "#ff4000"
-                                    },
+                                    mr: 1, mt: 2
                                 }} data-testid="button_delete">{t("button_delete")}</Button>
                                 <IconButton
                                     onClick={handleLock}

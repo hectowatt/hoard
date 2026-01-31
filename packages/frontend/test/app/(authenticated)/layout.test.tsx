@@ -55,14 +55,17 @@ jest.mock("@/app/context/ThemeProvider", () => {
 });
 
 import { LabelProvider } from "@/app/(authenticated)/context/LabelProvider";
+import { AuthProvider } from "@/app/context/AuthProvider";
 
 describe("RootLayout", () => {
     it("renders logo, nav, and children", async () => {
         render(
             <SnackbarProvider>
-                <AuthenticatedLayout>
-                    <div>Child Content</div>
-                </AuthenticatedLayout>
+                <AuthProvider>
+                    <AuthenticatedLayout>
+                        <div>Child Content</div>
+                    </AuthenticatedLayout>
+                </AuthProvider>
             </SnackbarProvider>
         );
 
@@ -83,9 +86,11 @@ describe("RootLayout", () => {
     it("カラーテーマ切り替え", () => {
         render(
             <SnackbarProvider>
-                <AuthenticatedLayout>
-                    <div>Toggle Test</div>
-                </AuthenticatedLayout>
+                <AuthProvider>
+                    <AuthenticatedLayout>
+                        <div>Toggle Test</div>
+                    </AuthenticatedLayout>
+                </AuthProvider>
             </SnackbarProvider>
         );
 
@@ -107,9 +112,11 @@ describe("RootLayout", () => {
     it("ラベルアイテムがクリックされたとき、ダイアログが表示される", async () => {
         render(
             <SnackbarProvider>
-                <AuthenticatedLayout>
-                    <div>Label Dialog Test</div>
-                </AuthenticatedLayout>
+                <AuthProvider>
+                    <AuthenticatedLayout>
+                        <div>Label Dialog Test</div>
+                    </AuthenticatedLayout>
+                </AuthProvider>
             </SnackbarProvider>
         );
 
@@ -124,9 +131,11 @@ describe("RootLayout", () => {
     it("登録済みラベルがあるときにラベルリストが表示される", async () => {
         render(
             <SnackbarProvider>
-                <AuthenticatedLayout>
-                    <div>Label List Test</div>
-                </AuthenticatedLayout>
+                <AuthProvider>
+                    <AuthenticatedLayout>
+                        <div>Label List Test</div>
+                    </AuthenticatedLayout>
+                </AuthProvider>
             </SnackbarProvider>
         );
 
