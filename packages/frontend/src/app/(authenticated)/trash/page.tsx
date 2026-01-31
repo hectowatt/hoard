@@ -179,7 +179,7 @@ export default function Home() {
         throw new Error("Failed to delete trash");
       }
 
-      showSnackbar(t("message_all_delete"));
+      showSnackbar(t("message_all_delete"), "success");
       await fetchTrashNotes();
       await fetchTrashTableNotes();
 
@@ -226,7 +226,7 @@ export default function Home() {
         throw new Error("Failed to restore trash");
       }
 
-      showSnackbar(t("message_all_restore"));
+      showSnackbar(t("message_all_restore"), "success");
       await fetchTrashNotes();
       await fetchTrashTableNotes();
 
