@@ -7,10 +7,12 @@ const router = Router();
 const SECRET = process.env.SECRET || 'hoard_secret';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'hoard_refresh_secret';
 const ACCESS_TOKEN_EXPIRY = Number(process.env.ACCESS_TOKEN_EXPIRY) || 15 * 60;
+const REFRESH_TOKEN_EXPIRY = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7 * 24 * 60 * 60;
 router.post('/refresh', async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
+            // リフレッシュトークンがない場合はエラー
             console.log("Refresh token not found in cookies:", refreshToken);
             return res.status(401).json({ message: "Refresh token not found" });
         }
@@ -33,10 +35,13 @@ router.post('/refresh', async (req, res) => {
                 return res.status(500).json({ error: "Old token delete error" });
             }
         }
-        // 新しいアクセストークンを発行
+        // 新しいアクセストークンとリフレッシュトークンを発行
         const newAccessJti = nanoid();
+        const newRefreshJti = nanoid();
         const newAccessToken = jwt.sign({ id: decoded.id, username: decoded.username, jti: newAccessJti }, SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+        const newRefreshToken = jwt.sign({ id: decoded.id, username: decoded.username, jti: newAccessJti }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
         await redis.set(`accessToken:${newAccessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY);
+        await redis.set(`refreshToken:${newRefreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY);
         res.cookie("accessToken", newAccessToken, {
             domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
             httpOnly: true,
@@ -44,6 +49,14 @@ router.post('/refresh', async (req, res) => {
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: "/",
             maxAge: 15 * 60 * 1000
+        });
+        res.cookie("refreshToken", newRefreshToken, {
+            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production' ? true : false,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
         return res.status(200).json({ success: true });
     }

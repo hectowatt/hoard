@@ -75,6 +75,7 @@ describe("Token Routes", () => {
         expect(res.body.success).toBe(true);
         expect(res.headers["set-cookie"]).toBeDefined();
         expect(res.headers["set-cookie"][0]).toMatch(/accessToken=dummy-valid-token/);
+        expect(res.headers["set-cookie"][1]).toMatch(/refreshToken=dummy-valid-token/);
     });
 
     it("POST /token/refresh with no refresh token should return 401 and message", async () => {

@@ -49,7 +49,7 @@ export function stopTokenRefreshInterval() {
 }
 
 // 即時アクセストークン取得
-export async function getAccessToken(): Promise<void> {
+export async function getTokenRefresh(): Promise<void> {
     try {
         console.log("Token refresh triggered immediately");
         const response = await fetch('/api/token/refresh', {

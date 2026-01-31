@@ -51,7 +51,7 @@ import { useTranslation } from "react-i18next";
 import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import Image from "next/image";
-import { getAccessToken, startTokenRefreshInterval, stopTokenRefreshInterval } from "./script/TokenRefresh";
+import { getTokenRefresh, startTokenRefreshInterval, stopTokenRefreshInterval } from "./script/TokenRefresh";
 import { AuthProvider, useAuthContext } from "../context/AuthProvider";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -235,7 +235,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	React.useEffect(() => {
 		// リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
 		if (!isTokenReady) {
-			getAccessToken().then(() => {
+			getTokenRefresh().then(() => {
 				setIsTokenReady(true);
 			});
 		}
