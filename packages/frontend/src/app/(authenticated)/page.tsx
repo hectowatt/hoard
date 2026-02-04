@@ -13,7 +13,7 @@ import { useSearchLabelContext } from "./context/SearchLabelProvider";
 import { redirect } from "next/navigation";
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTranslation } from "react-i18next";
-import { useAuthContext } from "../context/AuthProvider";
+import { useAuthContext, verifyAndRefreshTokens } from "../context/AuthProvider";
 
 type Column = {
   id: number;
@@ -36,7 +36,7 @@ export default function Home() {
   const { tableNotes, setTableNotes, fetchTableNotes } = useTableNoteContext();
   const { searchWord } = useSearchWordContext();
   const { searchLabel } = useSearchLabelContext();
-  const { isTokenReady, setIsTokenReady } = useAuthContext();
+  const { isInitializing } = useAuthContext();
   const { t } = useTranslation();
 
   // label_idに紐づくlabelnameを取得する
@@ -71,12 +71,27 @@ export default function Home() {
   const pinnedTableNotes = filterdTableNotes.filter(tableNote => tableNote.is_pinned);
   const unpinnedTableNotes = filterdTableNotes.filter(tableNote => !tableNote.is_pinned);
 
+
   useEffect(() => {
-    if (isTokenReady) {
+    const initializePage = async () => {
+      // AuthProviderの初期化が完了するまで待機
+      if (isInitializing) {
+        return;
+      }
+
+      // トークン状態を再確認（念のため）
+      const isTokenValid = await verifyAndRefreshTokens();
+      if (!isTokenValid) {
+        window.location.href = "/login";
+        return;
+      }
+      // ノートとテーブルノートを取得
       fetchNotes();
       fetchTableNotes();
-    }
-  }, [isTokenReady]);
+    };
+
+    initializePage();
+  }, [isInitializing]);
 
 
   // ノート初期登録時のコールバック関数

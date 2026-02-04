@@ -22,7 +22,6 @@ export default function LoginPage() {
     const [password, setPassword] = React.useState("");
     const [isUserExists, setIsUserExists] = React.useState(false);
     const [isChecking, setIsChecking] = React.useState(true);
-    const { isTokenReady, setIsTokenReady } = useAuthContext();
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const router = useRouter();
     const { t } = useTranslation();
@@ -49,7 +48,6 @@ export default function LoginPage() {
 
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
-            setIsTokenReady(true);
             console.log("login success!");
             setIsLoading(false);
             router.push("/");
@@ -79,7 +77,6 @@ export default function LoginPage() {
             console.log("create user success!");
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
-            setIsTokenReady(true);
             setIsLoading(false);
             router.push("/");
         } else {

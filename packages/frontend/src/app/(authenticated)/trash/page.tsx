@@ -8,7 +8,7 @@ import TrashTableNote from "@/app/(authenticated)/components/TrashTableNote";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
-import { useAuthContext } from "@/app/context/AuthProvider";
+import { useAuthContext, verifyAndRefreshTokens } from "@/app/context/AuthProvider";
 import { getTokenRefresh } from "../script/TokenRefresh";
 
 
@@ -17,7 +17,7 @@ export default function Home() {
   const [trashNotes, setTrashNotes] = useState<{ id: string, title: string; content: string; label_id: string, is_locked: boolean, createdate: string; updatedate: string }[]>([]);
   const [trashTableNotes, setTrashTableNotes] = useState<{ id: string, title: string; label_id: string, is_locked: boolean, createdate: string; updatedate: string }[]>([]);
   const { labels, fetchLabels } = useLabelContext();
-  const { isTokenReady, setIsTokenReady } = useAuthContext();
+  const { isInitializing } = useAuthContext();
   const { t } = useTranslation();
   const { showSnackbar } = useSnackbar();
   const router = useRouter();
@@ -53,19 +53,26 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (isTokenReady) {
-      fetchTrashNotes();
-    }
-  }, [isTokenReady]);
+    const initializePage = async () => {
+      // AuthProviderの初期化が完了するまで待機
+      if (isInitializing) {
+        return;
+      }
 
-  React.useEffect(() => {
-    // リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
-    if (!isTokenReady) {
-      getTokenRefresh().then(() => {
-        setIsTokenReady(true);
-      });
-    }
-  }, [isTokenReady, setIsTokenReady]);
+      // トークン状態を再確認（念のため）
+      const isTokenValid = await verifyAndRefreshTokens();
+      if (!isTokenValid) {
+        window.location.href = "/login";
+        return;
+      }
+
+      // 削除済みノート取得
+      fetchTrashNotes();
+      fetchTrashTableNotes();
+    };
+
+    initializePage();
+  }, [isInitializing]);
 
   // 画面描画時にDBからテーブルノートを全件取得して表示する
   const fetchTrashTableNotes = async () => {
@@ -91,12 +98,6 @@ export default function Home() {
       console.error("Error fetching trash notes", error);
     }
   };
-
-  useEffect(() => {
-    if (isTokenReady) {
-      fetchTrashTableNotes();
-    }
-  }, [isTokenReady]);
 
   // ノート復元ボタン押下時のコールバック関数
   const handleSave = (id: string, newTitle: string, newContent: string, newLabel: string, newUpdateDate: string) => {

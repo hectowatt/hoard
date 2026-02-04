@@ -156,7 +156,6 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	const [isDrawerOpen, setIsDrawerOpen] = React.useState(!isSmallScreen);
 	const { searchWord, setSearchWord } = useSearchWordContext();
 	const { searchLabel, setSearchLabel } = useSearchLabelContext();
-	const { isTokenReady, setIsTokenReady } = useAuthContext();
 	const { t } = useTranslation();
 	const { showSnackbar } = useSnackbar();
 	const [isLabelSelectDialogOpen, setIsLabelSelectDialogOpen] = React.useState(false);
@@ -231,15 +230,6 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 			stopTokenRefreshInterval();
 		};
 	}, []);
-
-	React.useEffect(() => {
-		// リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
-		if (!isTokenReady) {
-			getTokenRefresh().then(() => {
-				setIsTokenReady(true);
-			});
-		}
-	}, [isTokenReady, setIsTokenReady]);
 
 	const toggleColorMode = () => {
 		setMode(mode === "light" ? "dark" : "light");

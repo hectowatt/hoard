@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Home from "@/app/(authenticated)/page";
 import { useNoteContext } from "@/app/(authenticated)/context/NoteProvider";
@@ -24,9 +24,9 @@ jest.mock("react-i18next", () => ({
 
 jest.mock("@/app/context/AuthProvider", () => {
     return {
+        verifyAndRefreshTokens: jest.fn().mockResolvedValue(true),
         useAuthContext: () => ({
-            isTokenReady: true,
-            setIsTokenReady: jest.fn(),
+            isInitializing: false
         }),
         AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     }
@@ -89,10 +89,15 @@ describe("Home Component", () => {
 
     afterEach(cleanup);
 
-    it("初期表示時にノートとテーブルノートを取得する関数が実行されること", () => {
+    it("初期表示時にノートとテーブルノートを取得する関数が実行されること", async () => {
         render(<Home />);
-        expect(mockFetchNotes).toHaveBeenCalledTimes(1);
-        expect(mockFetchTableNotes).toHaveBeenCalledTimes(1);
+        await waitFor(() => {
+            expect(mockFetchNotes).toHaveBeenCalledTimes(1);
+        });
+
+        await waitFor(() => {
+            expect(mockFetchTableNotes).toHaveBeenCalledTimes(1);
+        });
     });
 
     it("ピン留めされたノートがリストの最初に表示されること", () => {

@@ -59,6 +59,7 @@
     "placeholder_current_note_password": "Enter current note password",
     "placeholder_new_note_password": "Enter new note password",
     "placeholder_column": "Column",
+    "message_loading": "Loading...",
     "message_logouted": "Logged out.",
     "message_failed_to_logout": "Logout failed.",
     "mmessage_login_failed": "Login failed. Please check your username and password.",

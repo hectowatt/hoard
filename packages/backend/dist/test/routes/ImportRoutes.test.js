@@ -9,6 +9,12 @@ const mockSave = jest.fn(() => {
 const mockRepo = {
     save: mockSave,
 };
+// AuthMiddlewareをモック
+jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+    authMiddleware: jest.fn((req, res, next) => {
+        next();
+    }),
+}));
 const mockGetRepository = jest.fn(() => mockRepo);
 jest.unstable_mockModule("../../dist/DataSource.js", () => ({
     AppDataSource: {

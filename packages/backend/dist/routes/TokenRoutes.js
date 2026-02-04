@@ -8,6 +8,46 @@ const SECRET = process.env.SECRET || 'hoard_secret';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'hoard_refresh_secret';
 const ACCESS_TOKEN_EXPIRY = Number(process.env.ACCESS_TOKEN_EXPIRY) || 15 * 60;
 const REFRESH_TOKEN_EXPIRY = Number(process.env.REFRESH_TOKEN_EXPIRY) || 7 * 24 * 60 * 60;
+// トークン有効性確認エンドポイント
+router.get('/verify', async (req, res) => {
+    try {
+        const accessToken = req.cookies.accessToken;
+        const refreshToken = req.cookies.refreshToken;
+        const result = {
+            hasAccessToken: !!accessToken,
+            hasRefreshToken: !!refreshToken,
+            accessTokenValid: false,
+            refreshTokenValid: false
+        };
+        // アクセストークン検証
+        if (accessToken) {
+            try {
+                const decoded = jwt.verify(accessToken, SECRET);
+                const isValid = await redis.get(`accessToken:${decoded.jti}`);
+                result.accessTokenValid = !!isValid;
+            }
+            catch (error) {
+                result.accessTokenValid = false;
+            }
+        }
+        // リフレッシュトークン検証
+        if (refreshToken) {
+            try {
+                const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+                const isValid = await redis.get(`refreshToken:${decoded.jti}`);
+                result.refreshTokenValid = !!isValid;
+            }
+            catch (error) {
+                result.refreshTokenValid = false;
+            }
+        }
+        return res.status(200).json(result);
+    }
+    catch (error) {
+        console.error("Error during token verification:", error);
+        return res.status(500).json({ error: "Token verification failed" });
+    }
+});
 router.post('/refresh', async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken;

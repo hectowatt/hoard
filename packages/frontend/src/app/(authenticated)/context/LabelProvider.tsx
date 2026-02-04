@@ -23,7 +23,7 @@ export const useLabelContext = () => {
 
 export const LabelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [labels, setLabels] = useState<Label[]>([]);
-    const { isTokenReady, setIsTokenReady } = useAuthContext();
+    const { isInitializing } = useAuthContext();
     const { showSnackbar } = useSnackbar();
     const { t } = useTranslation();
     const router = useRouter();
@@ -51,10 +51,10 @@ export const LabelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, []);
 
     React.useEffect(() => {
-        if (isTokenReady) {
+        if (!isInitializing) {
             fetchLabels();
         }
-    }, [isTokenReady]);
+    }, [isInitializing]);
 
     return (
         <LabelContext.Provider value={{ labels, fetchLabels }}>

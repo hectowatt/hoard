@@ -8,10 +8,11 @@ import NotePassword from "../entities/NotePassword.js";
 import TableNote from "../entities/TableNote.js";
 import TableNoteCell from "../entities/TableNoteCell.js";
 import TableNoteColumn from "../entities/TableNoteColumn.js";
+import { authMiddleware } from "../middleware/AuthMiddleware.js";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
     try {
         const noteRepo = AppDataSource.getRepository(Note);
         const labelRepo = AppDataSource.getRepository(Label);

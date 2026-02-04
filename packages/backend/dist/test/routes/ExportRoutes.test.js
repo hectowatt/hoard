@@ -17,6 +17,12 @@ const mockArchiver = jest.fn(() => ({
 jest.unstable_mockModule("archiver", () => ({
     default: mockArchiver,
 }));
+// AuthMiddlewareをモック
+jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+    authMiddleware: jest.fn((req, res, next) => {
+        next();
+    }),
+}));
 // 2. csv-stringify/sync モック
 const mockStringify = jest.fn((data, options) => {
     // 取得したデータに基づいてモックの CSV データを返す

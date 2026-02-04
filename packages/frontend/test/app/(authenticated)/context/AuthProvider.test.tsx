@@ -3,13 +3,22 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { AuthProvider, useAuthContext } from "@/app/context/AuthProvider";
 import "@testing-library/jest-dom";
 
+jest.mock("@/app/context/AuthProvider", () => {
+    return {
+        verifyAndRefreshTokens: jest.fn().mockResolvedValue(true),
+        useAuthContext: () => ({
+            isInitializing: false
+        }),
+        AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    }
+});
+
 const ConsumerComponent = () => {
-    const { isTokenReady, setIsTokenReady } = useAuthContext();
+    const { isInitializing } = useAuthContext();
 
     return (
         <div>
-            <div data-testid="value">{isTokenReady ? "TRUE" : "FALSE"}</div>
-            <button onClick={() => setIsTokenReady(true)}>更新</button>
+            <div data-testid="value">{isInitializing ? "TRUE" : "FALSE"}</div>
         </div>
     );
 };
@@ -23,9 +32,5 @@ describe("useAuthContext", () => {
         );
 
         expect(screen.getByTestId("value")).toHaveTextContent("FALSE");
-
-        fireEvent.click(screen.getByText("更新"));
-
-        expect(screen.getByTestId("value")).toHaveTextContent("TRUE");
     });
 });

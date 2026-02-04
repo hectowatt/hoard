@@ -13,9 +13,9 @@ global.URL.revokeObjectURL = jest.fn();
 
 jest.mock("@/app/context/AuthProvider", () => {
     return {
+        verifyAndRefreshTokens: jest.fn().mockResolvedValue(true),
         useAuthContext: () => ({
-            isTokenReady: true,
-            setIsTokenReady: jest.fn(),
+            isInitializing: false
         }),
         AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     }
@@ -140,9 +140,9 @@ describe("Setting Page", () => {
 
         const downloadButton = await screen.findByTestId("button-download");
         fireEvent.click(downloadButton);
-        await waitFor(() => { });
-
-        expect(fetch).toHaveBeenCalledWith("/api/export");
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith("/api/export", expect.any(Object));
+        });
     });
 
     it("データアップロードボタンでファイルを選択したとき、/api/importにリクエストが送信される", async () => {
