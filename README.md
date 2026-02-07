@@ -42,6 +42,9 @@ Next, enter your server's domain name in COOKIE_DOMAIN in .env.
 And if you want to customise connection setting, edit these files.
 
 After building docker container with docker compose, you can launch Hoard.
+```
+http://localhost:8120
+```
 
 ## Languages
 Hoard supports Japanese and English(US).
