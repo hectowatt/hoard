@@ -43,7 +43,7 @@ export const TableNoteProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const [tableNotes, setTableNotes] = useState<tableNote[]>([]);
     const { showSnackbar } = useSnackbar();
-    const { isTokenReady, setIsTokenReady } = useAuthContext();
+    const { isInitializing } = useAuthContext();
 
     const { t } = useTranslation();
     const router = useRouter();
@@ -73,10 +73,10 @@ export const TableNoteProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
 
     useEffect(() => {
-        if (isTokenReady) {
+        if (!isInitializing) {
             fetchTableNotes();
         }
-    }, [isTokenReady]);
+    }, [isInitializing]);
 
     return (
         <tableNoteContext.Provider value={{ tableNotes, setTableNotes, fetchTableNotes }}>

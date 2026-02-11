@@ -25,7 +25,7 @@ type noteContextType = {
 
 export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [notes, setNotes] = useState<{ id: string, title: string; content: string; label_id: string; createdate: string; updatedate: string; is_locked: boolean; is_pinned: boolean }[]>([]);
-    const { isTokenReady, setIsTokenReady } = useAuthContext();
+    const { isInitializing } = useAuthContext();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
     const router = useRouter();
@@ -54,10 +54,10 @@ export const NoteProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
-        if (isTokenReady) {
+        if (!isInitializing) {
             fetchNotes();
         }
-    }, [isTokenReady]);
+    }, [isInitializing]);
 
     return (
         <NoteContext.Provider value={{ notes, setNotes, fetchNotes }}>

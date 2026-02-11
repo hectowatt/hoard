@@ -12,8 +12,8 @@ import { useSnackbar } from "../context/SnackbarProvider";
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { styled } from '@mui/material/styles';
-import { useAuthContext } from "@/app/context/AuthProvider";
-import { getTokenRefresh } from "../script/TokenRefresh";
+import { useAuthContext, verifyAndRefreshTokens } from "@/app/context/AuthProvider";
+
 
 // 設定ページのコンテンツ
 export default function Home() {
@@ -25,7 +25,8 @@ export default function Home() {
   const [isPasswordExist, setIsPasswordExist] = useState(false);
   const [notePasswordId, setNotePasswordId] = useState("");
   const { t } = useTranslation();
-  const { isTokenReady, setIsTokenReady } = useAuthContext();
+  const { isInitializing } = useAuthContext();
+  const [isPageReady, setIsPageReady] = useState(false);
   const availableLangs = Object.keys(i18n.options.resources || {});
   const langNames: Record<string, string> = {
     ja: "日本語",
@@ -65,19 +66,26 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (isTokenReady) {
-      fetchPasswordStatus();
-    }
-  }, [isTokenReady]);
+    const initializePage = async () => {
+      // AuthProviderの初期化が完了するまで待機
+      if (isInitializing) {
+        return;
+      }
 
-  React.useEffect(() => {
-    // リフレッシュトークンが有効でアクセストークンが無効な場合、即時でアクセストークンを更新する
-    if (!isTokenReady) {
-      getTokenRefresh().then(() => {
-        setIsTokenReady(true);
-      });
-    }
-  }, [isTokenReady, setIsTokenReady]);
+      // トークン状態を再確認（念のため）
+      const isTokenValid = await verifyAndRefreshTokens();
+      if (!isTokenValid) {
+        window.location.href = "/login";
+        return;
+      }
+
+      // パスワード状態確認
+      await fetchPasswordStatus();
+      setIsPageReady(true);
+    };
+
+    initializePage();
+  }, [isInitializing]);
 
   // ノートパスワードの保存処理
   const handleSavePassword = async () => {
@@ -243,7 +251,10 @@ export default function Home() {
 
   // データエクスポート処理
   const handleDownload = async () => {
-    const res = await fetch("/api/export");
+    const res = await fetch("/api/export", {
+      method: "GET",
+      credentials: "include"
+    });
     if (!res.ok) {
       showSnackbar(t("message_error_occured"));
       return;
@@ -274,6 +285,7 @@ export default function Home() {
       const res = await fetch("/api/import", {
         method: "POST",
         body: formData,
+        credentials: "include"
       });
 
       if (!res.ok) {

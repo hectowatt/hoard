@@ -43,9 +43,9 @@ jest.mock("next/navigation", () => ({
 
 jest.mock("@/app/context/AuthProvider", () => {
     return {
+        verifyAndRefreshTokens: jest.fn().mockResolvedValue(true),
         useAuthContext: () => ({
-            isTokenReady: true,
-            setIsTokenReady: jest.fn(),
+            isInitializing: false
         }),
         AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     }

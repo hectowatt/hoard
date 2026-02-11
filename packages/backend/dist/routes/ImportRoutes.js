@@ -10,6 +10,7 @@ import TableNote from "../entities/TableNote.js";
 import TableNoteColumn from "../entities/TableNoteColumn.js";
 import TableNoteCell from "../entities/TableNoteCell.js";
 import fs from "fs/promises";
+import { authMiddleware } from "../middleware/AuthMiddleware.js";
 const upload = multer({ dest: "uploads/" });
 const router = Router();
 const toDateOrNull = (value) => {
@@ -18,7 +19,7 @@ const toDateOrNull = (value) => {
     const d = new Date(Number(value));
     return isNaN(d.getTime()) ? null : d;
 };
-router.post("/", upload.single("file"), async (req, res) => {
+router.post("/", authMiddleware, upload.single("file"), async (req, res) => {
     const filePath = req.file?.path;
     try {
         if (!req.file)
@@ -51,6 +52,7 @@ router.post("/", upload.single("file"), async (req, res) => {
                     label_id: row.label_id === "" ? null : row.label_id,
                     is_deleted: row["is_deleted"] === "" ? false : row["is_deleted"] === "true",
                     is_locked: row["is_locked"] === "" ? false : row["is_locked"] === "true",
+                    is_pinned: row["is_pinned"] === "" ? false : row["is_pinned"] === "true",
                     deletedate: toDateOrNull(row.deletedate),
                     createdate: toDateOrNull(row.createdate),
                     updatedate: toDateOrNull(row.updatedate),
@@ -72,6 +74,7 @@ router.post("/", upload.single("file"), async (req, res) => {
                     label_id: row.label_id === "" ? null : row.label_id,
                     is_deleted: row["is_deleted"] === "" ? false : row["is_deleted"] === "true",
                     is_locked: row["is_locked"] === "" ? false : row["is_locked"] === "true",
+                    is_pinned: row["is_pinned"] === "" ? false : row["is_pinned"] === "true",
                     deletedate: toDateOrNull(row.deletedate),
                     createdate: toDateOrNull(row.createdate),
                     updatedate: toDateOrNull(row.updatedate),
@@ -90,7 +93,7 @@ router.post("/", upload.single("file"), async (req, res) => {
             }
         }
         await fs.unlink(filePath);
-        res.json({ message: "Import completed" });
+        res.status(200).json({ message: "Import completed" });
     }
     catch (error) {
         console.error(error);
