@@ -29,11 +29,11 @@
 
 ## Installation
 
-After cloning source, you have to copy `docker-compose_sample.yml`, `default.conf_sample` and `.env_sample`.
+After cloning source, you have to copy `docker-compose_sample.yml`, `hoard.conf_sample` and `.env_sample`.
 ```
 cp docker-compose_sample.yml docker-compose.yml
 
-cp nginx/conf.d/default.conf_sample nginx/conf.d/default.conf
+cp nginx/conf.d/hoard.conf_sample nginx/conf.d/hoard.conf
 
 cp .env_sample .env
 ```
@@ -56,7 +56,7 @@ Copy settings file and build container.
 ```
 cp docker-compose_sample_dev.yml docker-compose.yml
 
-cp nginx/conf.d/default.conf_sample nginx/conf.d/default.conf
+cp nginx/conf.d/hoard.conf_sample nginx/conf.d/hoard.conf
 
 cp ./.devcontainer/devcontainer_sample.json ./.devcontainer/devcontainer.json
 
