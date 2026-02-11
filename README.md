@@ -61,7 +61,6 @@ cp nginx/conf.d/hoard.conf_sample nginx/conf.d/hoard.conf
 cp ./.devcontainer/devcontainer_sample.json ./.devcontainer/devcontainer.json
 
 cp .env_sample .env
-
 ```
 
 ## Mobile
