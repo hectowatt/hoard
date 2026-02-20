@@ -723,22 +723,23 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                         ) : (
                             // パスワードロックされている場合
                             <>
-                                <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }}>{t("button_delete")}</Button>
+                                <Button onClick={handleDelete} variant="contained" sx={{ mr: 1 }}>{t("button_delete")}</Button>
+                                <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1 }} data-testid="button_close">{t("button_close")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
+                                    sx={{ mr: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
                                 </IconButton>
                                 {isPinned ? (
                                     <IconButton
                                         onClick={handlePin}
-                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        sx={{ mr: 1, color: isPinned ? "text.primary" : "action.disabled" }}
                                         data-testid="icon_pinned">
                                         <PushPinIcon />
                                     </IconButton>) : (
                                     <IconButton
                                         onClick={handlePin}
-                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        sx={{ mr: 1, color: isPinned ? "text.primary" : "action.disabled" }}
                                         data-testid="icon_pin">
                                         <PushPinOutlinedIcon />
                                     </IconButton>
