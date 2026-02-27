@@ -7,6 +7,8 @@ import { useLabelContext } from "@/app/(authenticated)/context/LabelProvider";
 import { useTableNoteContext } from "@/app/(authenticated)/context/TableNoteProvider";
 import { useSearchWordContext } from "@/app/(authenticated)/context/SearchWordProvider";
 import { useSearchLabelContext } from "@/app/(authenticated)/context/SearchLabelProvider";
+import { ScreenSizeProvider } from "@/app/(authenticated)/context/ScreenSizeProvider";
+import { SnackbarProvider } from "@/app/(authenticated)/context/SnackbarProvider";
 
 // フックのモック化
 jest.mock("@/app/(authenticated)/context/NoteProvider");
@@ -19,6 +21,14 @@ jest.mock("@/app/(authenticated)/context/SearchLabelProvider");
 jest.mock("react-i18next", () => ({
     useTranslation: () => ({
         t: (key: string) => key,
+    }),
+}));
+
+jest.mock("next/navigation", () => ({
+    useRouter: () => ({
+        push: jest.fn(),
+        replace: jest.fn(),
+        prefetch: jest.fn(),
     }),
 }));
 
@@ -90,7 +100,12 @@ describe("Home Component", () => {
     afterEach(cleanup);
 
     it("初期表示時にノートとテーブルノートを取得する関数が実行されること", async () => {
-        render(<Home />);
+        render(
+            <SnackbarProvider>
+                <ScreenSizeProvider>
+                    <Home />
+                </ScreenSizeProvider>
+            </SnackbarProvider>);
         await waitFor(() => {
             expect(mockFetchNotes).toHaveBeenCalledTimes(1);
         });
@@ -101,7 +116,12 @@ describe("Home Component", () => {
     });
 
     it("ピン留めされたノートがリストの最初に表示されること", () => {
-        render(<Home />);
+        render(
+            <SnackbarProvider>
+                <ScreenSizeProvider>
+                    <Home />
+                </ScreenSizeProvider>
+            </SnackbarProvider>);
         const notes = screen.getAllByTestId("note");
 
         expect(notes[0]).toHaveTextContent("Pinned Note");
@@ -110,7 +130,12 @@ describe("Home Component", () => {
 
     it("検索ワードを入力した際、該当するノートのみが表示されること", () => {
         (useSearchWordContext as jest.Mock).mockReturnValue({ searchWord: "Pinned" });
-        render(<Home />);
+        render(
+            <SnackbarProvider>
+                <ScreenSizeProvider>
+                    <Home />
+                </ScreenSizeProvider>
+            </SnackbarProvider>);
 
         expect(screen.getByText("Pinned Note")).toBeInTheDocument();
         expect(screen.queryByText("Note 1")).not.toBeInTheDocument();
@@ -118,7 +143,12 @@ describe("Home Component", () => {
 
     it("ラベルフィルターが有効な場合、フィルタリング中のメッセージが表示されること", () => {
         (useSearchLabelContext as jest.Mock).mockReturnValue({ searchLabel: "Work" });
-        render(<Home />);
+        render(
+            <SnackbarProvider>
+                <ScreenSizeProvider>
+                    <Home />
+                </ScreenSizeProvider>
+            </SnackbarProvider>);
 
         expect(screen.getByText("label_filtered")).toBeInTheDocument();
     });
@@ -141,7 +171,12 @@ describe("Home Component", () => {
         });
         (useSearchWordContext as jest.Mock).mockReturnValue({ searchWord: "findme" });
 
-        render(<Home />);
+        render(
+            <SnackbarProvider>
+                <ScreenSizeProvider>
+                    <Home />
+                </ScreenSizeProvider>
+            </SnackbarProvider>);
         expect(screen.getByText("Searchable Table")).toBeInTheDocument();
     });
 });

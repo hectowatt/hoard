@@ -262,7 +262,8 @@ describe("InputForm", () => {
             fireEvent.click(inputContent);
         });
 
-        const inputTitle = screen.getByTestId("input_title");
+        const inputTitleWrapper = screen.getByTestId("input_title");
+        const inputTitle = inputTitleWrapper.querySelector('input') as HTMLInputElement;
 
         await user.type(inputTitle, "新しいタイトル");
 
@@ -284,12 +285,13 @@ describe("InputForm", () => {
                 </AuthProvider>
             </LocaleProvider>
         );
-        const inputContent = screen.getByTestId("input_content");
+        const inputContentWrapper = screen.getByTestId("input_content");
 
         await act(async () => {
-            fireEvent.click(inputContent);
+            fireEvent.click(inputContentWrapper);
         });
 
+        const inputContent = inputContentWrapper.querySelector('textarea') as HTMLTextAreaElement;
 
         await user.type(inputContent, "新しいコンテンツ");
 

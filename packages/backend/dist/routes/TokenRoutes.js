@@ -79,7 +79,7 @@ router.post('/refresh', async (req, res) => {
         const newAccessJti = nanoid();
         const newRefreshJti = nanoid();
         const newAccessToken = jwt.sign({ id: decoded.id, username: decoded.username, jti: newAccessJti }, SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-        const newRefreshToken = jwt.sign({ id: decoded.id, username: decoded.username, jti: newAccessJti }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+        const newRefreshToken = jwt.sign({ id: decoded.id, username: decoded.username, jti: newRefreshJti }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
         await redis.set(`accessToken:${newAccessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY);
         await redis.set(`refreshToken:${newRefreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY);
         res.cookie("accessToken", newAccessToken, {

@@ -94,7 +94,7 @@ router.post('/refresh', async (req, res) => {
         );
 
         const newRefreshToken = jwt.sign(
-            { id: decoded.id, username: decoded.username, jti: newAccessJti },
+            { id: decoded.id, username: decoded.username, jti: newRefreshJti },
             REFRESH_SECRET,
             { expiresIn: REFRESH_TOKEN_EXPIRY }
         );
