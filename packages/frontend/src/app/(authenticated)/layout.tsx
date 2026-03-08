@@ -609,7 +609,10 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 
 				<Box component="main" sx={{
 					flexGrow: 1, p: 3, width: `calc(100% - ${currentDrawerWidth}px)`,
-					overflowX: 'hidden', paddingBottom: { xs: 20, md: 5 },
+					overflowX: 'hidden', paddingBottom: {
+						xs: `calc(82px + env(safe-area-inset-bottom))`,
+						md: 5
+					},
 				}}>
 					<Toolbar />
 					{children}
