@@ -231,7 +231,7 @@ export default function Home() {
   const StyledFab = styled(Fab)({
     position: 'fixed',
     zIndex: 100,
-    bottom: 80,  // 下からの距離
+    bottom: 'calc(80px + env(safe-area-inset-bottom))',  // 下からの距離（セーフエリア考慮）
     right: 20,   // 右からの距離
   });
 
