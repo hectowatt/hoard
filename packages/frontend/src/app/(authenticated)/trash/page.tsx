@@ -238,7 +238,7 @@ export default function Home() {
   }
 
   return (
-    <Container>
+    <Container sx={{ position: "relative" }}>
       <p data-testid="description">{t("label_trash_desc")}</p>
       <Button variant="contained" onClick={handleAllDelete} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_all_delete">{t("button_all_delete")}</Button>
       <Button variant="contained" onClick={handleAllRestore} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_all_restore">{t("button_all_restore")}</Button>
