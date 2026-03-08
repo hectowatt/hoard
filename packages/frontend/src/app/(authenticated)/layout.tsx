@@ -371,8 +371,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 					<AppBar position="fixed" sx={{
 						top: 'auto',
 						bottom: 0,
-						pb: 'env(safe-area-inset-bottom)',
-						height: 'auto',
+						minHeight: `calc(66px + env(safe-area-inset-bottom))`,
 						transition: theme.transitions.create(["width", "margin"], {
 							easing: theme.transitions.easing.sharp,
 							duration: theme.transitions.duration.enteringScreen,
@@ -385,6 +384,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 							height: '66px',
 							paddingLeft: { xs: 1, sm: 2 },
 							paddingRight: { xs: 1, sm: 2 },
+							paddingBottom: 'env(safe-area-inset-bottom)',
 						}}>
 							<Box sx={{ width: '100%' }}>
 								<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
