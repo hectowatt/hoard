@@ -337,6 +337,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 					sx={{
 						zIndex: (theme) => theme.zIndex.drawer + 1,
 						backgroundColor: "primary.main",
+						paddingTop: 'env(safe-area-inset-top)',
 						transition: theme.transitions.create(["width", "margin"], {
 							easing: theme.transitions.easing.sharp,
 							duration: theme.transitions.duration.enteringScreen,
@@ -394,87 +395,89 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						</IconButton>
 					</Toolbar>
 				</AppBar>
-				{isSmallScreen && !isKeyboardOpen ?
-					// スマホの場合はドロワーは表示せずに画面下部にメニューを表示する
-					<AppBar position="fixed" sx={{
-						top: 'auto',
-						bottom: 0,
-						height: `calc(66px + env(safe-area-inset-bottom))`,
-						transition: theme.transitions.create(["width", "margin"], {
-							easing: theme.transitions.easing.sharp,
-							duration: theme.transitions.duration.enteringScreen,
-						}),
-					}}>
-						<Toolbar sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: 2,
-							height: '66px',
-							paddingLeft: { xs: 1, sm: 2 },
-							paddingRight: { xs: 1, sm: 2 },
-							paddingBottom: 'env(safe-area-inset-bottom)',
+				{isSmallScreen ?
+					// キーボードが開いている場合はナビゲーションエリアを表示しない
+					isKeyboardOpen ? null :
+						// スマホの場合はドロワーは表示せずに画面下部にメニューを表示する
+						<AppBar position="fixed" sx={{
+							top: 'auto',
+							bottom: 0,
+							height: `calc(66px + env(safe-area-inset-bottom))`,
+							transition: theme.transitions.create(["width", "margin"], {
+								easing: theme.transitions.easing.sharp,
+								duration: theme.transitions.duration.enteringScreen,
+							}),
 						}}>
-							<Box sx={{ width: '100%' }}>
-								<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
-									{navAboveItems.map(({ text, icon, href, dialog, onClick }) => {
-										const active = href ? isActive(href) : false;
-										return (
-											<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
-												{dialog ? (
-													<IconButton onClick={() => setLabelDialogOpen(true)} color="inherit">
-														{icon}
-													</IconButton>
-												) : (
-													onClick ? (
-														<IconButton component={Link} href={href!} onClick={onClick} color="inherit" sx={{
-															...(active && {
-																color: "primary.main",
-																bgcolor: "action.selected",
-																"& .MuiListItemIcon-root": { color: "primary.main" }
-															})
-														}}>
+							<Toolbar sx={{
+								display: "flex",
+								alignItems: "center",
+								gap: 2,
+								height: '66px',
+								paddingLeft: { xs: 1, sm: 2 },
+								paddingRight: { xs: 1, sm: 2 },
+								paddingBottom: 'env(safe-area-inset-bottom)',
+							}}>
+								<Box sx={{ width: '100%' }}>
+									<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
+										{navAboveItems.map(({ text, icon, href, dialog, onClick }) => {
+											const active = href ? isActive(href) : false;
+											return (
+												<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
+													{dialog ? (
+														<IconButton onClick={() => setLabelDialogOpen(true)} color="inherit">
 															{icon}
 														</IconButton>
 													) : (
-														<IconButton component={Link} href={href!} color="inherit">
-															{icon}
-														</IconButton>
-													)
-												)}
-											</ListItem>
-										);
-									})}
-									<LabelSelectDialog open={isLabelSelectDialogOpen} onClose={() => setIsLabelSelectDialogOpen(false)} data-testid="labelselectdialogbutton" />
-									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
-										<IconButton color="inherit" onClick={() => { setIsLabelSelectDialogOpen(true) }}>
-											<LabelImportantOutlineRoundedIcon />
-										</IconButton>
-									</ListItem>
-									{navBelowItems.map(({ text, icon, href }) => {
-										const active = href ? isActive(href) : false;
-										return (
-											<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
-												<IconButton component={Link} href={href} color="inherit" sx={{
-													...(active && {
-														color: "primary.main",
-														bgcolor: "action.selected",
-														"& .MuiListItemIcon-root": { color: "primary.main" }
-													})
-												}}>
-													{icon}
-												</IconButton>
-											</ListItem>
-										)
-									})}
-									<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
-										<IconButton onClick={handleReload} data-testid="reloadbutton" color="inherit">
-											{belowIcons[2]}
-										</IconButton>
-									</ListItem>
-								</Stack>
-							</Box>
-						</Toolbar>
-					</AppBar>
+														onClick ? (
+															<IconButton component={Link} href={href!} onClick={onClick} color="inherit" sx={{
+																...(active && {
+																	color: "primary.main",
+																	bgcolor: "action.selected",
+																	"& .MuiListItemIcon-root": { color: "primary.main" }
+																})
+															}}>
+																{icon}
+															</IconButton>
+														) : (
+															<IconButton component={Link} href={href!} color="inherit">
+																{icon}
+															</IconButton>
+														)
+													)}
+												</ListItem>
+											);
+										})}
+										<LabelSelectDialog open={isLabelSelectDialogOpen} onClose={() => setIsLabelSelectDialogOpen(false)} data-testid="labelselectdialogbutton" />
+										<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
+											<IconButton color="inherit" onClick={() => { setIsLabelSelectDialogOpen(true) }}>
+												<LabelImportantOutlineRoundedIcon />
+											</IconButton>
+										</ListItem>
+										{navBelowItems.map(({ text, icon, href }) => {
+											const active = href ? isActive(href) : false;
+											return (
+												<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
+													<IconButton component={Link} href={href} color="inherit" sx={{
+														...(active && {
+															color: "primary.main",
+															bgcolor: "action.selected",
+															"& .MuiListItemIcon-root": { color: "primary.main" }
+														})
+													}}>
+														{icon}
+													</IconButton>
+												</ListItem>
+											)
+										})}
+										<ListItem sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
+											<IconButton onClick={handleReload} data-testid="reloadbutton" color="inherit">
+												{belowIcons[2]}
+											</IconButton>
+										</ListItem>
+									</Stack>
+								</Box>
+							</Toolbar>
+						</AppBar>
 					:
 					// 通常の画面ではDrawerを表示
 					<Drawer
