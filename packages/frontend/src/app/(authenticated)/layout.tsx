@@ -641,6 +641,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 				<Box component="main" sx={{
 					flexGrow: 1,
 					minHeight: 0,
+					mt: 7,
 					p: 3,
 					width: {
 						xs: "100%",
