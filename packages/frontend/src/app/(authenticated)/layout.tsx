@@ -187,6 +187,9 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 		if (href === "/") return pathname === "/";
 		return pathname.startsWith(href);
 	};
+
+	const [isKeyboardOpen, setIsKeyboardOpen] = React.useState(false);
+
 	//クライアントサイドでのみテーマを決定する
 	React.useEffect(() => {
 		const THEME_KEY = process.env.THEME_KEY ? process.env.THEME_KEY : "hoard_theme_mode";
@@ -232,6 +235,27 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 
 		return () => {
 			stopTokenRefreshInterval();
+		};
+	}, []);
+
+	// キーボード表示時はスマホのナビゲーションエリアを非表示にする
+	React.useEffect(() => {
+		const handleResize = () => {
+			if (!window.visualViewport) return;
+
+			const keyboardOpen =
+				window.innerHeight - window.visualViewport.height > 150 &&
+				window.visualViewport.scale === 1;
+
+			setIsKeyboardOpen(keyboardOpen);
+		};
+
+		handleResize();
+
+		window.visualViewport?.addEventListener("resize", handleResize);
+
+		return () => {
+			window.visualViewport?.removeEventListener("resize", handleResize);
 		};
 	}, []);
 
@@ -301,7 +325,12 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	}
 	return (
 		<>
-			<Box sx={{ display: "flex", paddingTop: 'env(safe-area-inset-top)' }}>
+			<Box
+				sx={{
+					display: "flex",
+					minHeight: "100dvh"
+				}}
+			>
 				<CssBaseline />
 				<AppBar
 					position="fixed"
@@ -312,7 +341,6 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 							easing: theme.transitions.easing.sharp,
 							duration: theme.transitions.duration.enteringScreen,
 						}),
-						paddingTop: 'env(safe-area-inset-top)',
 					}}
 				>
 					<Toolbar sx={{
@@ -361,17 +389,17 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						<IconButton
 							onClick={handleLogOut}
 							color="inherit"
-							data-testid="togglecolormode">
+							data-testid="logoutbutton">
 							<LogoutOutlinedIcon></LogoutOutlinedIcon>
 						</IconButton>
 					</Toolbar>
 				</AppBar>
-				{isSmallScreen ?
+				{isSmallScreen && !isKeyboardOpen ?
 					// スマホの場合はドロワーは表示せずに画面下部にメニューを表示する
 					<AppBar position="fixed" sx={{
 						top: 'auto',
 						bottom: 0,
-						minHeight: `calc(66px + env(safe-area-inset-bottom))`,
+						height: `calc(66px + env(safe-area-inset-bottom))`,
 						transition: theme.transitions.create(["width", "margin"], {
 							easing: theme.transitions.easing.sharp,
 							duration: theme.transitions.duration.enteringScreen,
@@ -608,7 +636,13 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 					</Drawer>}
 
 				<Box component="main" sx={{
-					flexGrow: 1, p: 3, width: `calc(100% - ${currentDrawerWidth}px)`,
+					flexGrow: 1,
+					minHeight: 0,
+					p: 3,
+					width: {
+						xs: "100%",
+						md: `calc(100% - ${currentDrawerWidth}px)`
+					},
 					overflowX: 'hidden', paddingBottom: {
 						xs: `calc(82px + env(safe-area-inset-bottom))`,
 						md: 5

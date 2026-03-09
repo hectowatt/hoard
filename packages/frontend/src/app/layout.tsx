@@ -24,7 +24,10 @@ export const viewport: Viewport = {
     initialScale: 1,
     width: 'device-width',
     viewportFit: 'cover',
-    themeColor: 'theme.palette.primary.main'
+    themeColor: [
+        { media: '(prefers-color-scheme: light)', color: '#e3a838' },
+        { media: '(prefers-color-scheme: dark)', color: '#e3a838' }
+    ]
 };
 
 export default function RootLayout({
@@ -34,8 +37,8 @@ export default function RootLayout({
 }) {
 
     return (
-        <html lang="ja">
-            <body style={{ margin: 0 }}>
+        <html lang="ja" style={{ height: "100%" }}>
+            <body style={{ margin: 0, minHeight: "100%" }}>
                 <ThemeRegistry>
                     <LocaleProvider>
                         <AuthProvider>
