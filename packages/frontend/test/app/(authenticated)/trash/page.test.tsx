@@ -100,8 +100,6 @@ describe("Trash Page", () => {
 
         // 最初のテキスト
         expect(screen.getByText(label_trash_desc)).toBeInTheDocument();
-        expect(screen.getByTestId("button_all_delete")).toBeInTheDocument();
-        expect(screen.getByTestId("button_all_restore")).toBeInTheDocument();
 
         // 非同期描画を待つ
         await waitFor(() => {
@@ -114,7 +112,7 @@ describe("Trash Page", () => {
         expect(fetch).toHaveBeenCalledWith("/api/tablenotes/trash", expect.any(Object));
     });
 
-    it("一括削除ボタンをクリックしたとき、/api/notes/trashと/api/tablenotes/trashにリクエストが送信される", async () => {
+    it("一括削除ボタンをクリックしたとき、確認ダイアログが表示されて/api/notes/trashと/api/tablenotes/trashにリクエストが送信される", async () => {
         render(
             <LocaleProvider>
                 <AuthProvider>
@@ -125,6 +123,9 @@ describe("Trash Page", () => {
             </LocaleProvider>
         );
 
+        const confirmAllDeleteButton = await screen.getByTestId("button_confirm_all_delete");
+
+        fireEvent.click(confirmAllDeleteButton);
         const allDeleteButton = await screen.getByTestId("button_all_delete");
 
         fireEvent.click(allDeleteButton);
@@ -143,6 +144,10 @@ describe("Trash Page", () => {
                 </AuthProvider>
             </LocaleProvider>
         );
+
+        const confirmAllRestoreButton = await screen.getByTestId("button_confirm_all_restore");
+
+        fireEvent.click(confirmAllRestoreButton);
 
         const allRestoreButton = await screen.getByTestId("button_all_restore");
 

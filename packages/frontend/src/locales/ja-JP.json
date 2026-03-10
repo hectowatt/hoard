@@ -92,6 +92,8 @@
     "message_uploading": "アップロード中...",
     "message_complete_upload": "アップロードに成功しました！",
     "message_must_set_title_or_content": "ノートを登録するにはタイトルか内容のいずれかを入力してください",
+    "message_confirm_all_delete": "ゴミ箱内のノートをすべて削除しますか？\nこの操作は取り消せません",
+    "message_confirm_all_restore": "ゴミ箱内のノートをすべて復元しますか？",
     "dropdown_labels": "ラベル",
     "dropdown_no_labels": "ラベルなし",
     "dropdown_no_languages": "利用可能言語なし"
