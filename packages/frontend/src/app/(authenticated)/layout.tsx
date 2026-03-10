@@ -362,14 +362,16 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 									position: 'relative',
 								}}
 							>
-								<Image
-									src="/Hoard_icon.png"
-									alt="Hoard Icon"
-									fill
-									priority
-									sizes="55px"
-									style={{ objectFit: "contain", objectPosition: "left" }}
-								/>
+								<Link href="/" onClick={() => { setSearchWord(""); setSearchLabel("") }} data-testid="hoardicon">
+									<Image
+										src="/Hoard_icon.png"
+										alt="Hoard Icon"
+										fill
+										priority
+										sizes="55px"
+										style={{ objectFit: "contain", objectPosition: "left" }}
+									/>
+								</Link>
 							</Box>
 
 						</Box>

@@ -57,7 +57,7 @@ jest.mock("@/app/context/ThemeProvider", () => {
 import { LabelProvider } from "@/app/(authenticated)/context/LabelProvider";
 import { AuthProvider } from "@/app/context/AuthProvider";
 
-describe("RootLayout", () => {
+describe("TopLayout", () => {
     it("renders logo, nav, and children", async () => {
         render(
             <SnackbarProvider>
@@ -143,6 +143,24 @@ describe("RootLayout", () => {
             expect(screen.getByTestId("addedlabelicon-label1")).toBeInTheDocument();
             expect(screen.getByTestId("addedlabelicon-label2")).toBeInTheDocument();
         });
+    });
+
+    it('Hoardアイコンがトップページへのリンクを持っていること', () => {
+        render(
+            <SnackbarProvider>
+                <AuthProvider>
+                    <AuthenticatedLayout>
+                        <div>Label List Test</div>
+                    </AuthenticatedLayout>
+                </AuthProvider>
+            </SnackbarProvider>
+        );
+
+        // data-testid="hoardicon" を使って要素を取得
+        const link = screen.getByTestId('hoardicon');
+
+        // hrefプロパティが正しいか確認
+        expect(link).toHaveAttribute('href', '/');
     });
 
 });
