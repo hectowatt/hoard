@@ -5,7 +5,6 @@
   "runServices": ["db", "redis", "nginx"],
   "workspaceFolder": "/app",
   "postCreateCommand": "npm install",
-  "postStartCommand": "npm run migrate",
   "remoteEnv": {
     "DATABASE_URL": "postgres://hoard_user:hoard_password@db:5432/hoard_db"
   }
