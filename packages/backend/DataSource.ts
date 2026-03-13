@@ -15,9 +15,9 @@ export const AppDataSource: DataSource = new DataSource({
     username: process.env.PG_USER || "postgres",
     password: process.env.PG_PASSWORD || "password",
     database: process.env.PG_DATABASE || "mydatabase",
-    synchronize: true, // 開発環境ではtrue、本番環境ではfalseにする
+    synchronize: true, // 開発環境では自動スキーマ同期
     logging: false,
-    entities: process.env.NODE_ENV === "development" ? ["./entities/*.ts"] : ["dist/entities/*.js"],
-    migrations: process.env.NODE_ENV === "development" ? ["./migrations/*.ts"] : ["dist/migrations/*.js"],
+    entities: [Note, Label, TableNote, TableNoteColumn, TableNoteCell, Password, HoardUser],
+    migrations: [],
     subscribers: [],
 });

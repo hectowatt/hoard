@@ -4,3 +4,5 @@ node_modules
 .devcontainer/devcontainer.json
 docker-compose.yml
 nginx/conf.d/hoard.conf
+packages/*/dist
+packages/frontend/.next
