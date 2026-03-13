@@ -9,8 +9,7 @@ services:
     environment:
       - DATABASE_URL=postgres://hoard_user:hoard_password@db:5432/hoard_db
       - REDIS_URL=redis://redis:6379
-    volumes:
-      - /app/node_modules
+    volumes: []
     command: /bin/sh -c "npm run build && npm run start"
     depends_on:
       - db
