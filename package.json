@@ -7,9 +7,9 @@
     "packages/backend"
   ],
   "scripts": {
-    "dev": "concurrently -n \"frontend,backend\" -c \"cyan,green\" \"npm run dev -w packages/frontend\" \"npm run dev -w packages/backend\"",
+    "dev": "node start.js dev",
     "build": "npm run build -w packages/frontend && npm run build -w packages/backend",
-    "start": "concurrently -n \"frontend,backend\" -c \"cyan,green\" \"npm run start -w packages/frontend\" \"npm run start -w packages/backend\"",
+    "start": "node start.js prod",
     "test": "npm run test -w packages/frontend && npm run test -w packages/backend",
     "migrate": "npm run migrate -w packages/backend",
     "typeorm": "npm run typeorm -w packages/backend",
