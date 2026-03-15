@@ -5,6 +5,8 @@ import TableNoteColumn from '../entities/TableNoteColumn.js';
 import TableNote from '../entities/TableNote.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
 import { EntityManager } from 'typeorm';
+import NotePassword from '../entities/NotePassword.js';
+import bcrypt from "bcrypt";
 
 const router = Router();
 
@@ -328,10 +330,10 @@ router.put('/', authMiddleware, async (req, res) => {
 });
 
 
-// 【UPDATE】TableNoteロック状態更新用API
+// 【UPDATE】TableNoteロック用API
 router.put('/lock', authMiddleware, async (req, res) => {
-  const { id, isLocked } = req.body;
-  if (!id || isLocked === null || isLocked === undefined) {
+  const { id } = req.body;
+  if (!id) {
     return res.status(400).json({ error: "Must set tablenote id,isLocked" });
   }
   try {
@@ -340,10 +342,45 @@ router.put('/lock', authMiddleware, async (req, res) => {
     if (!tableNote) {
       return res.status(404).json({ error: "Can't find TableNote" });
     }
-    tableNote.is_locked = isLocked; // ロック状態を更新
+    tableNote.is_locked = true; // ロック状態を更新
     const updatedNote = await tableNoteRepository.save(tableNote);
     console.log('Note lock state updated: ', updatedNote.is_locked);
     res.status(200).json({ message: "Update lock state success!", tablenote: updatedNote });
+  } catch (error) {
+    console.error("Error updating lock state", error);
+    return res.status(500).json({ error: "Failed to update lock state" });
+  }
+});
+
+// 【UPDATE】TableNoteロック解除用API
+router.put('/unlock', authMiddleware, async (req, res) => {
+  const { tablenoteId, passwordId, passwordString } = req.body;
+  if (!tablenoteId || !passwordId || !passwordString || passwordString.trim() === "") {
+    return res.status(400).json({ error: "Must set tablenoteId, passwordid and passwordstring" });
+  }
+  try {
+    // パスワードの検証
+    const passwordRepository = AppDataSource.getRepository(NotePassword);
+    // passwordを取得する
+    const password = await passwordRepository.findOneBy({ password_id: passwordId });
+    if (password === null) {
+      return res.status(404).json({ error: "Password not found" });
+    }
+    const isMatch = await bcrypt.compare(passwordString, password.password_hashed);
+    console.log("パスワードの一致:", isMatch);
+    if (!isMatch) {
+      return res.status(400).json({ error: "password is incorrect" });
+    } else {
+      const tableNoteRepository = AppDataSource.getRepository(TableNote);
+      const tableNote = await tableNoteRepository.findOneBy({ id: tablenoteId });
+      if (!tableNote) {
+        return res.status(404).json({ error: "Can't find TableNote" });
+      }
+      tableNote.is_locked = false; // ロック状態を更新
+      const updatedNote = await tableNoteRepository.save(tableNote);
+      console.log('Note lock state updated: ', updatedNote.is_locked);
+      res.status(200).json({ message: "Update lock state success!", tablenote: updatedNote });
+    }
   } catch (error) {
     console.error("Error updating lock state", error);
     return res.status(500).json({ error: "Failed to update lock state" });

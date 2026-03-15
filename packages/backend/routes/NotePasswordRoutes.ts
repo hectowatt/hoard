@@ -51,7 +51,7 @@ router.get('/', authMiddleware, async (req, res) => {
 // 【UPDATE】ノートパスワード更新API
 router.put('/', authMiddleware, async (req, res) => {
     const { password_id, passwordString } = req.body;
-    if (!password_id || !passwordString) {
+    if (!password_id || !passwordString || passwordString.trim() === "") {
         return res.status(400).json({ error: "Must set password_id, passwordString" });
     }
     try {
@@ -60,37 +60,21 @@ router.put('/', authMiddleware, async (req, res) => {
         if (!password) {
             return res.status(404).json({ error: "Password not found" });
         }
-        password.password_hashed = await bcrypt.hash(passwordString, 10);
 
-        await passwordRepository.save(password);
-        res.status(200).json({ message: "Password updated successfully" });
+        // パスワードの検証
+        const isMatch = await bcrypt.compare(passwordString, password.password_hashed);
+        console.log("パスワードの一致:", isMatch);
+        if (!isMatch) {
+            return res.status(400).json({ error: "password is incorrect" })
+        } else {
+            password.password_hashed = await bcrypt.hash(passwordString, 10);
+
+            await passwordRepository.save(password);
+            res.status(200).json({ message: "Password updated successfully" });
+        }
     } catch (error) {
         console.error("Error update password:", error);
         return res.status(500).json({ error: "Failed to update password" });
-    }
-});
-
-// 【SELECT】ノートパスワード比較API（リクエスト値とDBのハッシュ化されたパスワードが一致するかを返却）
-router.post('/compare', authMiddleware, async (req, res) => {
-    try {
-        const password_id = req.body.password_id;
-        const passwordString = req.body.passwordString;
-
-        if (!passwordString || !password_id) {
-            return res.status(400).json({ error: "Must set password string" });
-        }
-        const passwordRepository = AppDataSource.getRepository(NotePassword);
-        // passwordを取得する
-        const password = await passwordRepository.findOneBy({ password_id: password_id });
-        if (password === null) {
-            return res.status(404).json({ error: "Password not found" });
-        }
-        const isMatch = await bcrypt.compare(passwordString, password.password_hashed);
-        console.log("パスワードの一致:", isMatch);
-        res.status(200).json({ isMatch: isMatch });
-    } catch (error) {
-        console.error("Error fetching password:", error);
-        return res.status(500).json({ error: 'Failed to fetch notepassword' });
     }
 });
 

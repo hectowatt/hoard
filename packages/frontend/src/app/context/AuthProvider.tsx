@@ -32,7 +32,6 @@ export async function verifyAndRefreshTokens(): Promise<boolean> {
         }
 
         const tokenStatus = await verifyResponse.json();
-        console.log('Token status:', tokenStatus);
 
         // アクセストークンが有効な場合はそのまま戻す
         if (tokenStatus.accessTokenValid) {

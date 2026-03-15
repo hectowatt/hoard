@@ -257,8 +257,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 "Content-Type": "application/json",
                             },
                             body: JSON.stringify({
-                                id: id,
-                                isLocked: true, // ロック状態にする
+                                id: id
                             }),
                             credentials: "include"
                         });
@@ -297,85 +296,63 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
             return;
         }
 
-        // 入力されたパスワードをもとに比較APIを呼び出す
-        const responseCompare = await fetch("/api/password/compare", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                password_id: passwordId,
-                passwordString: inputPassword
-            }),
-            credentials: "include"
-        });
-
-        if (responseCompare.ok) {
-            const result = await responseCompare.json();
-            const isMatch = result.isMatch;
-            if (isMatch) {
-                try {
-                    // パスワードが一致した場合、ロックを解除するAPIを呼び出す
-                    const responseUnlock = await fetch("/api/tablenotes/lock", {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            id: id,
-                            isLocked: false, // ロック解除
-                        }),
-                        credentials: "include"
-                    });
-                    if (!responseUnlock.ok) {
-                        if (responseUnlock.status === 401) {
-                            showSnackbar(t("message_error_occured_redirect_login"), "warning");
-                            router.push("/login");
-                        } else {
-                            showSnackbar(t("message_error_occured"), "error");
-                            throw new Error("Failed to unlock note");
-                        }
-                    } else {
-                        // ロック解除成功したらノートを再取得する
-                        const responseGet = await fetch(`/api/tablenotes/${id}`, {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            credentials: "include"
-                        });
-
-                        if (!responseGet.ok) {
-                            if (responseGet.status === 401) {
-                                console.error("Error get tablenote");
-                                showSnackbar(t("message_error_occured_redirect_login"), "warning");
-                                router.push("/login");
-                            } else {
-                                showSnackbar(t("message_error_occured"), "error");
-                                throw new Error("Failed to get tablenote");
-                            }
-                        } else {
-                            const resultGet = await responseGet.json();
-                            setEditColumns(resultGet.columns || []);
-                            setEditRowCells(Array.isArray(resultGet.rowCells) ? resultGet.rowCells : []);
-                        }
-                    }
-
-                    setIsLocked(false);
-                    setPasswordDialogOpen(false);
-                    setInputPassword(""); // 入力フィールドをクリア
-                } catch (error) {
+        try {
+            // ロックを解除するAPIを呼び出す
+            const responseUnlock = await fetch("/api/tablenotes/unlock", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    tablenoteId: id,
+                    passwordId: passwordId,
+                    passwordString: inputPassword
+                }),
+                credentials: "include"
+            });
+            if (!responseUnlock.ok) {
+                if (responseUnlock.status === 401) {
+                    showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                    router.push("/login");
+                } else {
                     showSnackbar(t("message_error_occured"), "error");
-                    return;
+                    throw new Error("Failed to unlock note");
                 }
             } else {
-                showSnackbar(t("message_incorrect_password"), "warning");
+                // ロック解除成功したらノートを再取得する
+                const responseGet = await fetch(`/api/tablenotes/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include"
+                });
+
+                if (!responseGet.ok) {
+                    if (responseGet.status === 401) {
+                        console.error("Error get tablenote");
+                        showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                        router.push("/login");
+                    } else {
+                        showSnackbar(t("message_error_occured"), "error");
+                        throw new Error("Failed to get tablenote");
+                    }
+                } else {
+                    const resultGet = await responseGet.json();
+                    setEditColumns(resultGet.columns || []);
+                    setEditRowCells(Array.isArray(resultGet.rowCells) ? resultGet.rowCells : []);
+                }
             }
-        } else {
+
+            setIsLocked(false);
+            setPasswordDialogOpen(false);
+            setInputPassword(""); // 入力フィールドをクリア
+        } catch (error) {
             showSnackbar(t("message_error_occured"), "error");
             return;
         }
     }
+
 
     // テーブルノート保存処理
     const handleSaveTableNote = async () => {

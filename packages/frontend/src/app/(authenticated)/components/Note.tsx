@@ -232,8 +232,7 @@ export default function Note({
                                 "Content-Type": "application/json",
                             },
                             body: JSON.stringify({
-                                id: id,
-                                isLocked: true, // ロック状態にする
+                                id: id
                             }),
                             credentials: "include"
                         });
@@ -270,84 +269,62 @@ export default function Note({
             return;
         }
 
-        // 入力されたパスワードをもとに比較APIを呼び出す
-        const responseCompare = await fetch("/api/password/compare", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                password_id: passwordId,
-                passwordString: inputPassword
-            }),
-            credentials: "include"
-        });
-
-        if (responseCompare.ok) {
-            const result = await responseCompare.json();
-            const isMatch = result.isMatch;
-            if (isMatch) {
-                try {
-                    // パスワードが一致した場合、ロックを解除するAPIを呼び出す
-                    const responseUnlock = await fetch("/api/notes/lock", {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify({
-                            id: id,
-                            isLocked: false, // ロック解除
-                        }),
-                        credentials: "include"
-                    });
-                    if (!responseUnlock.ok) {
-                        if (responseUnlock.status === 401) {
-                            console.error("Error unlocking note");
-                            showSnackbar(t("message_error_occured_redirect_login"), "warning");
-                            router.push("/login");
-                        } else {
-                            showSnackbar(t("message_error_occured"), "error");
-                            throw new Error("Failed to unlock note");
-                        }
-                    } else {
-                        // ロック解除成功したらノートを再取得する
-                        const responseGet = await fetch(`/api/notes/${id}`, {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            credentials: "include"
-                        });
-
-                        if (!responseGet.ok) {
-                            if (responseGet.status === 401) {
-                                console.error("Error get note");
-                                showSnackbar(t("message_error_occured_redirect_login"), "warning");
-                                router.push("/login");
-                            } else {
-                                showSnackbar(t("message_error_occured"), "error");
-                                throw new Error("Failed to get note");
-                            }
-                        } else {
-                            const resultGet = await responseGet.json();
-                            setEditContent(resultGet.content);
-                        }
-                    }
-                    setIsLocked(false);
-                    setPasswordDialogOpen(false);
-                    setInputPassword(""); // 入力フィールドをクリア
-                } catch (error) {
+        try {
+            // ロックを解除するAPIを呼び出す
+            const responseUnlock = await fetch("/api/notes/unlock", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    noteId: id,
+                    passwordId: passwordId,
+                    passwordString: inputPassword
+                }),
+                credentials: "include"
+            });
+            if (!responseUnlock.ok) {
+                if (responseUnlock.status === 401) {
+                    console.error("Error unlocking note");
+                    showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                    router.push("/login");
+                } else {
                     showSnackbar(t("message_error_occured"), "error");
-                    return;
+                    throw new Error("Failed to unlock note");
                 }
             } else {
-                showSnackbar(t("message_incorrect_current_password"), "warning");
+                // ロック解除成功したらノートを再取得する
+                const responseGet = await fetch(`/api/notes/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include"
+                });
+
+                if (!responseGet.ok) {
+                    if (responseGet.status === 401) {
+                        console.error("Error get note");
+                        showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                        router.push("/login");
+                    } else {
+                        showSnackbar(t("message_error_occured"), "error");
+                        throw new Error("Failed to get note");
+                    }
+                } else {
+                    const resultGet = await responseGet.json();
+                    setEditContent(resultGet.content);
+                }
             }
-        } else {
+            setIsLocked(false);
+            setPasswordDialogOpen(false);
+            setInputPassword(""); // 入力フィールドをクリア
+        } catch (error) {
             showSnackbar(t("message_error_occured"), "error");
             return;
         }
-    }
+
+    };
 
     // ピン留めボタン押下処理
     const handlePin = async () => {
