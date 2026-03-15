@@ -119,7 +119,6 @@ router.put('/', authMiddleware, async (req, res) => {
         if (!user_id) {
             return res.status(401).json({ error: "Invalid token" });
         }
-        const oldJti = decoded.jti;
 
         // user_id でユーザーを検索
         const userRepository = AppDataSource.getRepository(HoardUser);
@@ -167,15 +166,18 @@ router.put('/', authMiddleware, async (req, res) => {
         user.updatedate = new Date();
         const savedUser = await userRepository.save(user);
 
-        const newJti = nanoid();
-        const newAccessToken = jwt.sign({ id: savedUser.id, username: savedUser.username, jti: newJti }, SECRET, { expiresIn: '1d' });
+        const accessJti = nanoid();
+        const refreshJti = nanoid();
+        const newAccessToken = jwt.sign({ id: savedUser.id, username: savedUser.username, jti: accessJti }, SECRET, { expiresIn: '1d' });
+        const refreshToken = jwt.sign({
+            id: user.id,
+            username: user.username,
+            jti: refreshJti
+        }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY_SEC });
 
-        if (oldJti) {
-            console.log("old jti is deleted.")
-            await redis.del(`accessToken:${oldJti}`); // 古いトークンを無効化
-        }
 
-        await redis.set(`accessToken:${newJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC); // 新しいトークンを登録
+        await redis.set(`accessToken:${accessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC); // 新しいトークンを登録
+        await redis.set(`refreshToken:${refreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY_SEC);
         console.log("new jti is set.")
 
         res.cookie("accessToken", newAccessToken, {
@@ -185,6 +187,15 @@ router.put('/', authMiddleware, async (req, res) => {
             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
             path: "/",
             maxAge: ACCESS_TOKEN_EXPIRY_MS
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production' ? true : false,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            path: "/",
+            maxAge: REFRESH_TOKEN_EXPIRY_MS
         });
         res.status(201).json({ message: "update user success!" });
     } catch (error) {
