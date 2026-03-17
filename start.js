@@ -15,14 +15,13 @@ console.log(`Hoard starting in ${mode} mode...\n`);
 const commands =
   mode === "prod"
     ? [
-        { command: "npm run start -w packages/frontend", name: "frontend" },
-        { command: "npm run start -w packages/backend", name: "backend" }
-      ]
+      { command: "npm run start -w packages/backend", name: "app" }
+    ]
     : [
-        { command: "npm run dev -w packages/frontend", name: "frontend" },
-        { command: "npm run dev -w packages/backend", name: "backend" }
-      ];
+      { command: "npm run dev -w packages/backend", name: "app" }
+    ];
 
 concurrently(commands, {
-  prefixColors: ["cyan", "green"]
+  prefixColors: ["green"],
+  killOthersOn: ["failure", "success"],
 });

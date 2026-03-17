@@ -63,7 +63,7 @@
     "message_loading": "Loading...",
     "message_logouted": "Logged out.",
     "message_failed_to_logout": "Logout failed.",
-    "mmessage_login_failed": "Login failed. Please check your username and password.",
+    "message_login_failed": "Login failed. Please check your username and password.",
     "message_failed_to_create_user": "Failed to create user.",
     "message_user_info_saved": "User info Updated!",
     "message_failed_to_save_user_info": "Failed to update user info",

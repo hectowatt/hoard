@@ -1,14 +1,21 @@
 {
-    "compilerOptions": {
-      "module": "NodeNext",
-      "moduleResolution": "nodenext",
-      "outDir": "./dist",
-      "experimentalDecorators": true,
-      "emitDecoratorMetadata": true,
-      "useDefineForClassFields": false,
-      "jsx": "react-jsx", 
-      "esModuleInterop": true,
-      "sourceMap": true
-    },
-    "exclude": ["node_modules", "dist", "test"]
-  }
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "outDir": "./dist",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "../../node_modules",
+    "../frontend"
+  ]
+}

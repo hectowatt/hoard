@@ -2,7 +2,10 @@
   "name": "Hoard Dev Container",
   "dockerComposeFile": "../docker-compose.yml",
   "service": "app",
-  "runServices": ["db", "redis", "nginx"],
+  "runServices": [
+    "db",
+    "redis"
+  ],
   "workspaceFolder": "/app",
   "postCreateCommand": "npm install",
   "remoteEnv": {

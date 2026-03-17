@@ -11,21 +11,34 @@ import noteRoutes from './routes/NoteRoutes.js';
 import labelRoutes from './routes/LabelRoutes.js';
 import notePasswordRoutes from './routes/NotePasswordRoutes.js';
 import tableNoteRoutes from './routes/TableNoteRoutes.js';
-import exportRoutes from './routes/ExportRoutes.js'
-import importRoutes from './routes/ImportRoutes.js'
-import tokenRoutes from './routes/TokenRoutes.js'
+import exportRoutes from './routes/ExportRoutes.js';
+import importRoutes from './routes/ImportRoutes.js';
+import tokenRoutes from './routes/TokenRoutes.js';
 import { LessThan } from 'typeorm';
 import Note from './entities/Note.js';
 import cookieParser from 'cookie-parser';
 import TableNote from './entities/TableNote.js';
 import { Redis } from 'ioredis';
+import next from 'next';
+import type { NextServerOptions, NextServer } from 'next/dist/server/next.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const { Pool } = pg;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const dev = process.env.NODE_ENV !== 'production';
+const port = 8120;
+const nextApp: NextServer = (next as unknown as (options: NextServerOptions) => NextServer)({
+  dev,
+  dir: path.resolve(__dirname, '../frontend'),
+});
+const handle = nextApp.getRequestHandler();
+
 export const app = express();
-const port = 4000;
 
-// JSONボディのパースを有効にする
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
   origin: [
     'http://localhost:8120',
@@ -37,9 +50,13 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(cookieParser());
+// Redis / PostgreSQL 設定
+export const redis = new Redis({
+  host: process.env.REDIS_HOST || 'redis',
+  port: 6379
+});
 
-// PostgreSQL接続設定
+const { Pool } = pg;
 const pool = new Pool({
   host: process.env.PG_HOST || 'localhost',
   port: process.env.PG_PORT || 5432,
@@ -48,40 +65,7 @@ const pool = new Pool({
   database: process.env.PG_DATABASE || 'mydatabase',
 });
 
-// TypeORMの初期化
-export async function startServer() {
-  await AppDataSource.initialize();
-  console.log("Data Source has been initialized!");
-
-  const hoardserver = await new Promise((resolve) => {
-    const server = app.listen(port, '0.0.0.0', () => {
-      console.log(`Server running on http://localhost:${port}`);
-      resolve(server);
-    });
-  });
-
-  const wss = new WebSocketServer({ server: hoardserver });
-
-  wss.on('connection', (ws) => {
-    console.log('Client connected');
-    ws.on('close', () => {
-      console.log('Client disconnected');
-    });
-  });
-
-  if (process.env.NODE_ENV !== 'test') {
-    setInterval(deleteOldNotes, 60 * 60 * 1000);
-  }
-
-  return { hoardserver, wss };
-}
-
-
-// ルートにアクセスされたときの処理
-app.get('/', (req, res) => {
-  res.send('WebSocket Server is running');
-});
-
+// API ルート定義
 app.use('/api/login', loginRoutets);
 app.use('/api/logout', logoutRoutets);
 app.use('/api/user', userRoutes);
@@ -93,35 +77,76 @@ app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/token', tokenRoutes);
 
+// サーバー起動処理
+export async function startServer() {
 
-// 定期的に古いノートを削除する関数（７日経過したら削除）
+  await nextApp.prepare();
+
+  // TypeORM の初期化
+  await AppDataSource.initialize();
+  console.log("Data Source has been initialized!");
+
+  // Next.js のハンドラーを最後に登録 (API以外をすべてNext.jsに流す)
+  app.all('*', (req, res) => {
+    return handle(req, res);
+  });
+
+  // サーバーの起動 (一度だけ呼び出す)
+  const hoardserver = await new Promise<any>((resolve) => {
+    const server = app.listen(port, '0.0.0.0', () => {
+      console.log(`> Ready on http://localhost:${port}`);
+      resolve(server);
+    });
+  });
+
+  // WebSocket の紐付け
+  const wss = new WebSocketServer({ noServer: true }); // ここで noServer: true にする
+
+  // HTTPサーバーのアップグレードイベントを横取りする
+  hoardserver.on('upgrade', (request: any, socket: any, head: any) => {
+    const { pathname } = new URL(request.url, `http://${request.headers.host}`);
+
+    // 自分のアプリ用WebSocketのパス（例: /ws）を指定する場合
+    // もしパスを分けていないなら、Next.jsの/_next/webpack-hmr 以外をターゲットにする
+    if (pathname === '/api/ws' || pathname === '/ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      // それ以外のアップグレード（Next.jsのHMRなど）はそのまま流す
+      // 何もしなければNext.js（handle関数）が処理を試みます
+    }
+  });
+  wss.on('connection', (ws) => {
+    console.log('Client connected');
+    ws.on('close', () => console.log('Client disconnected'));
+  });
+
+  // 定期タスク
+  if (process.env.NODE_ENV !== 'test') {
+    setInterval(deleteOldNotes, 60 * 60 * 1000);
+  }
+
+  return { hoardserver, wss };
+}
+
+// 古いノート削除ロジック
 export async function deleteOldNotes() {
   try {
     const noteRepository = AppDataSource.getRepository(Note);
     const tableNoteRepository = AppDataSource.getRepository(TableNote);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    await noteRepository.delete({
-      is_deleted: true,
-      deletedate: LessThan(sevenDaysAgo)
-    });
-    await tableNoteRepository.delete({
-      is_deleted: true,
-      deletedate: LessThan(sevenDaysAgo)
-    });
+    await noteRepository.delete({ is_deleted: true, deletedate: LessThan(sevenDaysAgo) });
+    await tableNoteRepository.delete({ is_deleted: true, deletedate: LessThan(sevenDaysAgo) });
     console.log('Old notes deleted successfully');
   } catch (error) {
     console.error('Error deleting old notes:', error);
-  };
-};
+  }
+}
 
-// エントリーポイントでstartServerを呼び出す
+// 実行
 if (process.env.NODE_ENV !== 'test') {
   startServer().catch((error) => {
     console.error("Failed to start server:", error);
   });
-};
-
-export const redis = new Redis({
-  host: process.env.REDIS_HOST || 'redis',
-  port: 6379
-});
+}

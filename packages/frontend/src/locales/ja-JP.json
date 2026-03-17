@@ -63,7 +63,7 @@
     "message_loading": "読み込み中...",
     "message_logouted": "ログアウトしました",
     "message_failed_to_logout": "ログアウトに失敗しました。",
-    "mmessage_login_failed": "ログインに失敗しました。ユーザー名とパスワードを確認してください。",
+    "message_login_failed": "ログインに失敗しました。ユーザー名とパスワードを確認してください。",
     "message_failed_to_create_user": "ユーザ作成に失敗しました。",
     "message_user_info_saved": "アカウント情報を更新しました!",
     "message_failed_to_save_user_info": "アカウント情報の更新に失敗しました",

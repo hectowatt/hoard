@@ -1,5 +1,6 @@
 {
   "name": "hoard",
+  "type": "module",
   "private": true,
   "description": "Hoard root",
   "workspaces": [
@@ -16,7 +17,9 @@
     "generate": "npm run generate -w packages/backend"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
     "tsx": "^4.21.0"
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1"
   }
 }

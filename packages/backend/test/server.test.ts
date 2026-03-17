@@ -1,13 +1,22 @@
 import request from 'supertest';
-import { LessThan } from 'typeorm';
 import { jest } from '@jest/globals';
-import type { Request, Response, NextFunction } from "express";
+import { LessThan } from 'typeorm';
 
+// Next.js のモック化 (テスト時にNextサーバーを起動させないため)
+jest.unstable_mockModule('next', () => ({
+  default: jest.fn().mockReturnValue({
+    prepare: jest.fn().mockImplementation(() => Promise.resolve()),
+    getRequestHandler: jest.fn().mockReturnValue((req: any, res: any) => {
+      res.status(200).send('Next.js Page');
+    }),
+  }),
+}));
+
+// エンティティのモック
 jest.mock('../dist/entities/Note.js', () => ({
   __esModule: true,
   default: class Note { },
 }));
-
 jest.mock('../dist/entities/TableNote.js', () => ({
   __esModule: true,
   default: class TableNote { },
@@ -25,9 +34,10 @@ const TableNoteModule = await import('../dist/entities/TableNote.js');
 const Note = NoteModule.default;
 const TableNote = TableNoteModule.default;
 
+// DataSource のモック
 const mockGetRepository = jest.fn((entity: any) => {
-  if (entity === TableNote || entity?.name === TableNote?.name || entity?.constructor?.name === TableNote?.name) return mockRepoTableNote;
-  if (entity === Note || entity?.name === Note?.name || entity?.constructor?.name === Note?.name) return mockRepoNote;
+  if (entity === Note || entity?.name === 'Note') return mockRepoNote;
+  if (entity === TableNote || entity?.name === 'TableNote') return mockRepoTableNote;
   return {};
 });
 
@@ -39,82 +49,82 @@ jest.unstable_mockModule('../dist/DataSource.js', () => ({
   },
 }));
 
+// モジュールをインポート
 const { app, deleteOldNotes, startServer } = await import("../dist/server.js");
-const DataSourceModule = await import("../dist/DataSource.js");
-const AppDataSource = DataSourceModule.AppDataSource;
+const { AppDataSource } = await import("../dist/DataSource.js");
 
 describe('Server Tests', () => {
-
-  let hoardserver;
+  let serverInstance: any;
+  let wssInstance: any;
 
   beforeAll(async () => {
     // サーバーを起動
     const result = await startServer();
-    hoardserver = result.server;
+    serverInstance = result.hoardserver;
+    wssInstance = result.wss;
   });
 
   afterAll(async () => {
     // サーバーを停止
-    if (hoardserver) {
-      await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
-      });
+    if (serverInstance) {
+      await new Promise<void>((resolve) => serverInstance.close(() => resolve()));
     }
-
-    if (hoardserver?.wss && typeof hoardserver.wss.close === "function") {
-      await new Promise<void>((resolve) => hoardserver.wss.close(() => resolve()));
+    if (wssInstance) {
+      wssInstance.close();
     }
+    await AppDataSource.destroy();
 
-    if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
-      try {
-        await AppDataSource.destroy();
-      } catch (error) {
-      }
-    }
-
-    // すべてのTimerをクリア
     jest.clearAllTimers();
     jest.useRealTimers();
-
-    // すべてのmockをクリア
-    jest.clearAllMocks();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  describe('Route Handling', () => {
+    it('GET / should be handled by Next.js (returns mock string)', async () => {
+      const response = await request(app).get('/');
+      expect(response.status).toBe(200);
+      expect(response.text).toBe('Next.js Page');
+    });
 
-  it('GET / should respond with a welcome message', async () => {
-    const response = await request(app).get('/').set('Cookie', ['refreshToken=dummy-valid-token', 'accessToken=dummy-valid-token']);;
-    expect(response.status).toBe(200);
-    expect(response.text).toBe('WebSocket Server is running');
+    it('API routes should still respond (e.g., /api/login)', async () => {
+      const response = await request(app).get('/api/login');
+      expect(response.status).not.toBe(404);
+    });
   });
 
+  describe('deleteOldNotes', () => {
+    it('should call delete on repositories for notes older than 7 days', async () => {
+      const mockDate = new Date('2025-01-15T12:00:00Z');
+      const dateSpy = jest.spyOn(Date, 'now').mockImplementation(() => mockDate.getTime());
 
+      await deleteOldNotes();
 
-  it('should call delete on repositories for notes older than 7 days', async () => {
-    const mockDate = new Date('2025-01-15T12:00:00Z');
-    const dateSpy = jest.spyOn(Date, 'now').mockImplementation(() => mockDate.getTime());
+      expect(mockGetRepository).toHaveBeenCalledWith(Note);
+      expect(mockGetRepository).toHaveBeenCalledWith(TableNote);
+      expect(mockRepoNote.delete).toHaveBeenCalledTimes(1);
+      expect(mockRepoTableNote.delete).toHaveBeenCalledTimes(1);
 
-    await deleteOldNotes();
+      // deleteの引数が七日前の日付（LessThan）になっているかチェック
+      const sevenDaysAgo = new Date(mockDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+      expect(mockRepoNote.delete).toHaveBeenCalledWith({
+        is_deleted: true,
+        deletedate: LessThan(sevenDaysAgo)
+      });
 
-    expect(mockGetRepository).toHaveBeenCalledWith(Note);
-    expect(mockGetRepository).toHaveBeenCalledWith(TableNote);
-    expect(mockRepoNote.delete).toHaveBeenCalledTimes(1);
-    expect(mockRepoTableNote.delete).toHaveBeenCalledTimes(1);
+      dateSpy.mockRestore();
+    });
 
-    dateSpy.mockRestore();
+    it('should log error if database operation fails', async () => {
+      mockRepoNote.delete.mockRejectedValueOnce(new Error('DB Error'));
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+
+      await deleteOldNotes();
+
+      expect(consoleSpy).toHaveBeenCalledWith('Error deleting old notes:', expect.any(Error));
+      consoleSpy.mockRestore();
+    });
   });
-
-  it('should not throw an error if the database operation fails', async () => {
-    mockRepoNote.delete.mockImplementationOnce(() => Promise.reject(new Error('DB Error')));
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-
-    await deleteOldNotes();
-
-    expect(consoleSpy).toHaveBeenCalledWith('Error deleting old notes:', expect.any(Error));
-    consoleSpy.mockRestore();
-  });
-
 });

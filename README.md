@@ -6,9 +6,6 @@
 
 ---
 
-<a href="https://nginx.org/">
-<img src="https://img.shields.io/badge/Nginx-009639?logo=nginx&logoColor=white&style=for-the-badge" alt="Nginx"/></a>
-
 <a href="https://nextjs.org/">
 <img src="https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js"/></a>
 
@@ -33,8 +30,6 @@ After cloning source, you have to copy `docker-compose_sample.yml`, `hoard.conf_
 ```
 cp docker-compose_sample.yml docker-compose.yml
 
-cp nginx/conf.d/hoard.conf_sample nginx/conf.d/hoard.conf
-
 cp .env_sample .env
 ```
 Next, enter your server's domain name in COOKIE_DOMAIN in .env.
@@ -55,8 +50,6 @@ To develop Hoard, Devcontainer is usefull.
 Copy settings file and build container.
 ```
 cp docker-compose_sample_dev.yml docker-compose.yml
-
-cp nginx/conf.d/hoard.conf_sample nginx/conf.d/hoard.conf
 
 cp ./.devcontainer/devcontainer_sample.json ./.devcontainer/devcontainer.json
 
