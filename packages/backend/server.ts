@@ -33,7 +33,7 @@ const nextApp: NextServer = (next as unknown as (options: NextServerOptions) => 
   dev,
   dir: path.resolve(__dirname, '../frontend'),
   conf: {
-    distDir: '.next' 
+    distDir: path.join(__dirname, '../frontend/.next')
   }
 });
 const handle = nextApp.getRequestHandler();

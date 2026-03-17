@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # ポート開放
-EXPOSE 3500 4000
+EXPOSE 8120
 
 # サーバ起動
 CMD ["node", "start.js", "prod"]

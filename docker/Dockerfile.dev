@@ -16,4 +16,4 @@ RUN npm install
 COPY . .
 
 # ポート開放
-EXPOSE 3500 4000
+EXPOSE 8120
