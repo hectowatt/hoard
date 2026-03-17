@@ -32,6 +32,9 @@ const port = 8120;
 const nextApp: NextServer = (next as unknown as (options: NextServerOptions) => NextServer)({
   dev,
   dir: path.resolve(__dirname, '../frontend'),
+  conf: {
+    distDir: '.next' 
+  }
 });
 const handle = nextApp.getRequestHandler();
 
@@ -100,21 +103,18 @@ export async function startServer() {
   });
 
   // WebSocket の紐付け
-  const wss = new WebSocketServer({ noServer: true }); // ここで noServer: true にする
+  const wss = new WebSocketServer({ noServer: true });
 
   // HTTPサーバーのアップグレードイベントを横取りする
   hoardserver.on('upgrade', (request: any, socket: any, head: any) => {
     const { pathname } = new URL(request.url, `http://${request.headers.host}`);
 
-    // 自分のアプリ用WebSocketのパス（例: /ws）を指定する場合
-    // もしパスを分けていないなら、Next.jsの/_next/webpack-hmr 以外をターゲットにする
     if (pathname === '/api/ws' || pathname === '/ws') {
       wss.handleUpgrade(request, socket, head, (ws) => {
         wss.emit('connection', ws, request);
       });
     } else {
       // それ以外のアップグレード（Next.jsのHMRなど）はそのまま流す
-      // 何もしなければNext.js（handle関数）が処理を試みます
     }
   });
   wss.on('connection', (ws) => {
