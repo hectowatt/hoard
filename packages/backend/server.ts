@@ -26,14 +26,19 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const dev = process.env.NODE_ENV !== 'production';
+// 実行ファイルの位置から見た frontend フォルダの場所を切り替える
+const frontendDir = dev
+  ? path.resolve(__dirname, '../frontend')        // 開発時 (server.ts の場所から)
+  : path.resolve(__dirname, '../../frontend');    // 本番時 (dist/server.js の場所から)
+
 const port = 8120;
 const nextApp: NextServer = (next as unknown as (options: NextServerOptions) => NextServer)({
   dev,
-  dir: path.resolve(__dirname, '../frontend'),
+  dir: frontendDir,
   conf: {
-    distDir: path.join(__dirname, '../frontend/.next')
+    // Next.js 本番ビルドの場所を絶対パスで指定
+    distDir: path.join(frontendDir, '.next')
   }
 });
 const handle = nextApp.getRequestHandler();
