@@ -413,7 +413,7 @@ export default function Note({
                     ) : (
                         title
                     )}</DialogTitle>)}
-                <DialogContent>
+                <DialogContent sx={{ mt: 7 }}>
                     {!isLocked ? (
                         <TextField
                             fullWidth

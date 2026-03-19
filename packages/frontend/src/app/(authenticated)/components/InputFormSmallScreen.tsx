@@ -349,7 +349,7 @@ export default function InputFormSmallScreen({ open, onClose, onInsert, onInsert
                         data-testid="input_title"
                     />
                 </DialogTitle>
-                <DialogContent>
+                <DialogContent sx={{ mt: 7 }}>
                     <TextField
                         inputProps={{ placeholder: t("placeholder_input_content") }}
                         data-testid="input_content"

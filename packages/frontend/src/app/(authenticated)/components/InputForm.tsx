@@ -390,6 +390,7 @@ export default function InputForm({ onInsert, onInsertTableNote }: InputFormProp
                     onChange={(e) => setContent(e.target.value)}
                     onFocus={handleExpand}
                     data-testid="input_content"
+                    sx={{ mt: 3 }}
                 />
                 <Collapse in={expand}>
                     <Box sx={{
