@@ -4,8 +4,18 @@ import Note from '../entities/Note.js';
 import { authMiddleware } from '../middleware/AuthMiddleware.js';
 import NotePassword from '../entities/NotePassword.js';
 import bcrypt from "bcrypt";
+import { Request, Response } from "express";
 
 const router = Router();
+
+type Query = {
+  password_id: string;
+  password_string: string;
+};
+
+type Params = {
+  id: string;
+};
 
 // 【SELECT】Notes全件取得API
 router.get('/', authMiddleware, async (req, res) => {
@@ -302,12 +312,12 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
 });
 
 // 【SELECT】ノート単体取得API
-router.get('/:id', authMiddleware, async (req, res) => {
+router.get('/:id', authMiddleware, async (req: Request<Params, {}, {}, Query>, res: Response) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({ error: "Must set id" });
   }
-
+  const { password_id, password_string } = req.query;
   try {
     const noteRepository = AppDataSource.getRepository(Note);
     const note = await noteRepository.findOneBy({ id: id });
@@ -315,10 +325,25 @@ router.get('/:id', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Note not found" });
     }
     if (note.is_locked) {
-      note.content = "";
+      // ロックされている場合はパスワードを検証して正しければ内容を返す
+      const passwordRepository = AppDataSource.getRepository(NotePassword);
+      const password = await passwordRepository.findOneBy({ password_id: password_id });
+      if (!password) {
+        note.content = "";
+      } else {
+        // パスワードの検証
+        const isMatch = await bcrypt.compare(password_string, password.password_hashed);
+        console.log("パスワードの一致:", isMatch);
+        if (!isMatch) {
+          note.content = "";
+        }
+      }
     }
     return res.status(200).json(note);
-  } catch (error) { }
+  } catch (error) {
+    console.error("Error getting note", error);
+    return res.status(500).json({ error: "Failed to get note" });
+  }
 });
 
 

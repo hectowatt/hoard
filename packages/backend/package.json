@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "server.ts",
   "scripts": {
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles",
     "dev": "NODE_ENV=development nodemon --watch . --watch ../frontend server.ts",
     "build": "npx tsc",
     "start": "NODE_ENV=production node dist/server.js",
@@ -40,6 +40,8 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.13.14",
     "@types/react": "^19.2.14",

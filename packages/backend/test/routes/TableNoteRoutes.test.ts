@@ -19,6 +19,25 @@ jest.unstable_mockModule("ioredis", () => ({
     })),
 }));
 
+
+// bcrypt のモックを変数化
+const mockBcrypt = {
+    compare: jest.fn().mockImplementation((password, hashed) => {
+        if (password !== null && password === hashed) {
+            return Promise.resolve(true);
+        } else {
+            return Promise.resolve(false);
+        }
+    }),
+    hash: jest.fn().mockImplementation((password, saltRounds) => {
+        return Promise.resolve("hashed_" + password);
+    }),
+};
+
+jest.unstable_mockModule("bcrypt", () => ({
+    default: mockBcrypt,
+}));
+
 const mockExecute = jest.fn(() => Promise.resolve({ affected: 1 }));
 const mockAndWhere = jest.fn(() => ({ execute: mockExecute }));
 const mockWhere = jest.fn(() => ({ andWhere: mockAndWhere }));
@@ -82,6 +101,14 @@ jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
 const mockRepoTableNote = {
     find: jest.fn(() => Promise.resolve(mockTableNotes)),
     findOneBy: jest.fn(({ id }) => {
+        if (id === mockTableNotes[0].id) {
+            return Promise.resolve(mockTableNotes[0]);
+        } else if (id === mockTableNotes[1].id) {
+            return Promise.resolve(mockTableNotes[1]);
+        }
+        return Promise.resolve(null);
+    }),
+    findOne: jest.fn(({ id }) => {
         if (id === mockTableNotes[0].id) {
             return Promise.resolve(mockTableNotes[0]);
         } else if (id === mockTableNotes[1].id) {
@@ -195,6 +222,14 @@ const mockRepoTableNoteCell = {
     delete: jest.fn((tableNoteCell: TableNoteCell) => Promise.resolve(tableNoteCell))
 };
 
+
+const mockRepoNotePassword = {
+    findOneBy: jest.fn(({ id }) => Promise.resolve({
+        id: "hashed_password",
+        password_hashed: "hashed_password"
+    })),
+}
+
 const mockGetRepository = jest.fn((entity: { name: string }) => {
     console.log('getRepository called with:', entity?.name);
     // コンストラクタ名や静的プロパティで判定
@@ -202,6 +237,7 @@ const mockGetRepository = jest.fn((entity: { name: string }) => {
     if (entityName === 'TableNote') return mockRepoTableNote;
     if (entityName === 'TableNoteColumn') return mockRepoTableNoteColumn;
     if (entityName === 'TableNoteCell') return mockRepoTableNoteCell;
+    if (entityName === 'NotePassword') return mockRepoNotePassword;
     // デフォルトのフォールバック
     return {};
 });
@@ -230,6 +266,83 @@ describe("TableNoteRoutes", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("GET /tablenotes/:1 should return 200 and message", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/1");
+
+        expect(response.status).toBe(200);
+        expect(response.body.tablenote.id).toBe("1");
+        expect(response.body.tablenote.title).toBe("test title1");
+        expect(response.body.tablenote.label_id).toBe("1");
+        expect(response.body.tablenote.is_deleted).toBe(false);
+        expect(response.body.tablenote.deletedate).toBe(null);
+        expect(response.body.tablenote.is_locked).toBe(false);
+        expect(response.body.tablenote.is_pinned).toBe(false);
+        expect(response.body.tablenote).toHaveProperty("createdate");
+        expect(response.body.tablenote).toHaveProperty("updatedate");
+        expect(response.body.columns[0].id).toBe("1");
+        expect(response.body.columns[0].name).toBe("test column1");
+        expect(response.body.columns[0].order).toBe(1);
+        expect(response.body.columns[1].id).toBe("2");
+        expect(response.body.columns[1].name).toBe("test column2");
+        expect(response.body.columns[1].order).toBe(2);
+        expect(response.body.rowCells[0][0].id).toBe("1");
+        expect(response.body.rowCells[0][0].rowIndex).toBe(0);
+        expect(response.body.rowCells[0][0].value).toBe("test cell1");
+        expect(response.body.rowCells[0][0]).toHaveProperty("columnId");
+        expect(response.body.rowCells[0][1].id).toBe("2");
+        expect(response.body.rowCells[0][1].rowIndex).toBe(0);
+        expect(response.body.rowCells[0][1].value).toBe("test cell2");
+        expect(response.body.rowCells[0][1]).toHaveProperty("columnId");
+    });
+
+    it("GET /tablenotes/:1 and error occured should return 500 and message", async () => {
+        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+        const response = await request(app)
+            .get("/api/tablenotes/1");
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe("Failed to get TableNote");
+    });
+
+    it("GET /tablenotes/:3 should return 404 and message", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/3");
+
+        expect(response.status).toBe(404);
+        expect(response.body.error).toBe("tablenote not found");
+    });
+
+    it("GET /tablenotes/:2?password_id=1&password_string=hashed_password should return 200 and message", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/2")
+            .query({
+                password_id: "1",
+                password_string: "hashed_password",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.tablenote.id).toBe("2");
+        expect(response.body.tablenote.title).toBe("test title2");
+        expect(response.body.columns).not.toBe(null);
+        expect(response.body.rowCells).not.toBe(null);
+    });
+
+    it("GET /tablenotes/:2?password_id=1&password_string=wrong_password should return 200 without content", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/2")
+            .query({
+                password_id: "1",
+                password_string: "wrong_password",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.tablenote.id).toBe("2");
+        expect(response.body.tablenote.title).toBe("test title2");
+        expect(response.body.columns).toBe(null);
+        expect(response.body.rowCells).toBe(null);
     });
 
     it("PUT /tablenotes/lock and error occured should return 500 and message", async () => {
@@ -398,43 +511,43 @@ describe("TableNoteRoutes", () => {
     });
 
 
-      it("PUT /tablenotes/pin should return 200 and message", async () => {
+    it("PUT /tablenotes/pin should return 200 and message", async () => {
         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ id: "1", isPinned: false });
-    
+            .put("/api/tablenotes/pin")
+            .send({ id: "1", isPinned: false });
+
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Pin TableNote success!");
-      });
-    
-      it("PUT /tablenotes/pin with not exists note should return 404 and message", async () => {
-         mockExecute.mockResolvedValueOnce({ affected: 0 }); 
-         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ id: "999-999", isPinned: false });
-    
+    });
+
+    it("PUT /tablenotes/pin with not exists note should return 404 and message", async () => {
+        mockExecute.mockResolvedValueOnce({ affected: 0 });
+        const response = await request(app)
+            .put("/api/tablenotes/pin")
+            .send({ id: "999-999", isPinned: false });
+
         expect(response.status).toBe(404);
         expect(response.body.error).toBe("Can't find TableNote");
-      });
-    
-        it("PUT /tablenotes/pin with no id should return 400 and message", async () => {
-         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ isPinned: false });
-    
+    });
+
+    it("PUT /tablenotes/pin with no id should return 400 and message", async () => {
+        const response = await request(app)
+            .put("/api/tablenotes/pin")
+            .send({ isPinned: false });
+
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Must set id and pin status");
-      });
-    
-       it("PUT /tablenotes/pin and error occured should return 500 and message", async () => {
+    });
+
+    it("PUT /tablenotes/pin and error occured should return 500 and message", async () => {
         mockExecute.mockRejectedValueOnce(new Error("DB update error"));
-         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ id: "1", isPinned: false });
-    
+        const response = await request(app)
+            .put("/api/tablenotes/pin")
+            .send({ id: "1", isPinned: false });
+
         expect(response.status).toBe(500);
         expect(response.body.error).toBe("Failed to pin TableNote");
-      });
+    });
 
     /************ TrashNote ************/
 
