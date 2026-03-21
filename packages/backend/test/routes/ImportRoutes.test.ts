@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import { jest } from "@jest/globals";
 import type { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 
 // ===== DataSource モック =====
 const mockSave = jest.fn(() => {
@@ -17,7 +17,7 @@ const mockRepo = {
 };
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
   authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
     next();
   }),
@@ -25,14 +25,14 @@ jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
 
 const mockGetRepository = jest.fn(() => mockRepo);
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource", () => ({
     AppDataSource: {
         getRepository: mockGetRepository,
     },
 }));
 
 // ===== テスト対象 import =====
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 // ===== ヘルパー: ZIP作成 =====
 const createZipBuffer = () => {

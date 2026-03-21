@@ -1,21 +1,42 @@
 import request from "supertest";
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../../dist/DataSource.js";
 
 // --- モックの定義 ---
 
 // 1. archiver モック
 const mockPipe = jest.fn((res: any) => {
-    res.end(); // ★これが超重要
+    res.end();
 });
 const mockAppend = jest.fn();
-const mockFinalize = jest.fn(() => Promise.resolve()); // finalize() は非同期で完了
+const mockFinalize = jest.fn(() => Promise.resolve());
 const mockArchiver = jest.fn(() => ({
     pipe: mockPipe,
     append: mockAppend,
     finalize: mockFinalize,
 }));
+
+// 2. csv-stringify/sync モック
+const mockStringify = jest.fn((data: any, options) => {
+    if (data.length > 0) {
+        return `header,${data.length} rows\n`;
+    }
+    return "header\n";
+});
+
+// 3. TypeORM リポジトリモック
+const mockFind = jest.fn(() => Promise.resolve([
+    { id: "1", data: "test" },
+]));
+
+const mockRepo = {
+    find: mockFind,
+};
+
+const mockGetRepository = jest.fn(() => mockRepo);
+
+
+// --- モックの設定 ---
 
 // archiver をモック
 jest.unstable_mockModule("archiver", () => ({
@@ -23,54 +44,44 @@ jest.unstable_mockModule("archiver", () => ({
 }));
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware.ts', () => ({
   authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
     next();
   }),
 }));
-
-// 2. csv-stringify/sync モック
-const mockStringify = jest.fn((data: any, options) => {
-    // 取得したデータに基づいてモックの CSV データを返す
-    if (data.length > 0) {
-        // 例: [{ id: '1', ... }] -> "id,..."
-        return `header,${data.length} rows\n`;
-    }
-    return "header\n";
-});
 
 // csv-stringify/sync をモック
 jest.unstable_mockModule("csv-stringify/sync", () => ({
     stringify: mockStringify,
 }));
 
-// 3. TypeORM リポジトリモック
-const mockFind = jest.fn(() => Promise.resolve([
-    { id: "1", data: "test" },
-])); // ダミーデータを返す
-
-const mockRepo = {
-    find: mockFind,
-};
-
-// getRepository のモック (すべてのエンティティに同じモックを返す)
-const mockGetRepository = jest.fn(() => mockRepo);
-
 // DataSource モック
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
     AppDataSource: {
         getRepository: mockGetRepository,
+        destroy: jest.fn(() => Promise.resolve()),
     },
 }));
 
-// --- テスト対象 API のインポート (モックの後に実行) ---
-const { app, hoardserver } = await import("../../dist/server.js");
-
 // --- テストスイート ---
 describe("ExportRoutes", () => {
+    let app: any;
+
+    beforeAll(async () => {
+        // Express app を手動作成
+        const express_module = await import("express");
+        const express_app = express_module.default;
+        
+        app = express_app();
+        app.use(express_app.json());
+        
+        // ExportRoutes をインポートして、ルーターをマウント
+        const { default: exportRouter } = await import("../../routes/ExportRoutes.ts");
+        app.use('/api/export', exportRouter);
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
-        // archiver モックの初期状態をリセット
         mockPipe.mockClear();
         mockAppend.mockClear();
         mockFinalize.mockClear();
@@ -78,8 +89,6 @@ describe("ExportRoutes", () => {
         mockStringify.mockClear();
         mockFind.mockClear();
 
-        // find が呼ばれるたびにダミーデータを返すように設定
-        // 異なるエンティティが呼ばれた回数を検証するために find のモックを使用
         mockFind.mockResolvedValue([
             { id: "1", data: "dummy" }
         ]);
@@ -152,20 +161,6 @@ describe("ExportRoutes", () => {
     });
 
     afterAll(async () => {
-        if (hoardserver) {
-            await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
-            });
-        };
-
-
-        if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
-            try {
-                await AppDataSource.destroy();
-            } catch (error) {
-            }
-        };
-
         jest.clearAllTimers();
     });
 });

@@ -2,7 +2,7 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from "@jest/globals";
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 import { server } from "typescript";
 
 // Redis をモック
@@ -21,7 +21,7 @@ const mockUser = {
 };
 
 // DataSource をモック
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
   AppDataSource: {
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
     getRepository: jest.fn().mockReturnValue({
@@ -36,7 +36,7 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 
 describe("POST /login", () => {

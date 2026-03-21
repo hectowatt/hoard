@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
-import Label from "./Label.js";
+import Label from "./Label.ts";
 
 @Entity({ name: "table_note" })
 export default class TableNote {

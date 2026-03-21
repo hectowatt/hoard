@@ -1,7 +1,7 @@
 import request from "supertest";
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 import { server } from "typescript";
 
 // Redisのメソッドのモック関数
@@ -40,7 +40,7 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
     sign: mockJwtSign,
 }));
 
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 describe("Token Routes", () => {
     afterEach(() => {

@@ -2,13 +2,11 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../dist/DataSource.js";
-import { idText, server } from "typescript";
+import { AppDataSource } from "../../DataSource.ts";
 
-import type HoardUser from "../../dist/entities/HoardUser.js";
-import { authMiddleware } from "../../middleware/AuthMiddleware.js";
+import type HoardUser from "../../entities/HoardUser.ts";
+import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
-import { before } from "node:test";
 
 // Redis をモック
 jest.unstable_mockModule("ioredis", () => ({
@@ -19,7 +17,7 @@ jest.unstable_mockModule("ioredis", () => ({
 }));
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
     authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
         next();
     }),
@@ -59,7 +57,7 @@ const mockRepo = {
     remove: jest.fn((user: HoardUser) => Promise.resolve(user)),
 };
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
     AppDataSource: {
         initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
         getRepository: jest.fn().mockImplementation(() => mockRepo),
@@ -67,7 +65,7 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 describe("HoardUserRoutes", () => {
     beforeEach(() => {

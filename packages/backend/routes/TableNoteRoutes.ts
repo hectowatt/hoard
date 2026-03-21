@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.js';
-import TableNoteCell from '../entities/TableNoteCell.js';
-import TableNoteColumn from '../entities/TableNoteColumn.js';
-import TableNote from '../entities/TableNote.js';
-import { authMiddleware } from '../middleware/AuthMiddleware.js';
+import { AppDataSource } from '../DataSource.ts';
+import TableNoteCell from '../entities/TableNoteCell.ts';
+import TableNoteColumn from '../entities/TableNoteColumn.ts';
+import TableNote from '../entities/TableNote.ts';
+import { authMiddleware } from '../middleware/AuthMiddleware.ts';
 import { EntityManager } from 'typeorm';
-import NotePassword from '../entities/NotePassword.js';
+import NotePassword from '../entities/NotePassword.ts';
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 

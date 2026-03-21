@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.js';
-import Note from '../entities/Note.js';
-import { authMiddleware } from '../middleware/AuthMiddleware.js';
-import NotePassword from '../entities/NotePassword.js';
+import { AppDataSource } from '../DataSource.ts';
+import Note from '../entities/Note.ts';
+import { authMiddleware } from '../middleware/AuthMiddleware.ts';
+import NotePassword from '../entities/NotePassword.ts';
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 

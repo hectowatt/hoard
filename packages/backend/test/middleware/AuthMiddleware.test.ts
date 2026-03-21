@@ -15,7 +15,7 @@ const mockJwtVerify = jest.fn((token, secret) => {
 const mockJwtSign = jest.fn(() => 'valid-token');
 
 // AuthMiddleware が "import { redis } from '../server.js'" するのを傍受
-jest.unstable_mockModule("../../dist/server.js", () => ({
+jest.unstable_mockModule("../../server", () => ({
     redis: {
         get: mockRedisGet,
     },
@@ -37,8 +37,8 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
 }));
 
 
-const { authMiddleware } = await import('../../dist/middleware/AuthMiddleware.js');
-const { app, hoardserver } = await import("../../dist/server.js");
+const { authMiddleware } = await import('../../middleware/AuthMiddleware');
+const { app, hoardserver } = await import("../../server");
 
 const jwt = (await import('jsonwebtoken')).default;
 
@@ -119,7 +119,7 @@ describe('AuthMiddleware', () => {
     afterAll(async () => {
         if (hoardserver) {
             await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
+                hoardserver.close((err:Error) => (err ? reject(err) : resolve()));
             });
         };
 

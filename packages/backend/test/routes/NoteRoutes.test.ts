@@ -1,11 +1,11 @@
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 
-import Label from "../../dist/entities/Label.js";
-import Note from "../../dist/entities/Note.js";
-import { authMiddleware } from "../../middleware/AuthMiddleware.js";
+import Label from "../../entities/Label.ts";
+import Note from "../../entities/Note.ts";
+import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
@@ -58,7 +58,7 @@ const mockDeletedNotes = [
 ]
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
   authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
     next();
   }),
@@ -115,7 +115,7 @@ const mockGetRepository = jest.fn((entity: { name: string }) => {
   return {};
 });
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
   AppDataSource: {
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
     getRepository: mockGetRepository,
@@ -123,7 +123,7 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 describe("NoteRoutes", () => {
 

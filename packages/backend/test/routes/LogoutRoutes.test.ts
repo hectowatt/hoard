@@ -2,7 +2,7 @@ import request from "supertest";
 import jwt from "jsonwebtoken";
 import { expect, jest } from "@jest/globals";
 import { server } from "typescript";
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 
 // Redis をモック
 jest.unstable_mockModule("ioredis", () => ({
@@ -14,13 +14,13 @@ jest.unstable_mockModule("ioredis", () => ({
 }));
 
 // DataSource をモック
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
     AppDataSource: {
         initialize: jest.fn().mockImplementation(() => Promise.resolve(true))
     },
 }));
 
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 const SECRET = process.env.SECRET || "hoard_secret";
 

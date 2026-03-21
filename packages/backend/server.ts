@@ -3,21 +3,21 @@ import express from 'express';
 import cors from 'cors';
 import { WebSocketServer } from 'ws';
 import pg from 'pg';
-import { AppDataSource } from './DataSource.js';
-import loginRoutets from './routes/LoginRoutes.js';
-import logoutRoutets from './routes/LogoutRoutes.js';
-import userRoutes from './routes/UserRoutes.js';
-import noteRoutes from './routes/NoteRoutes.js';
-import labelRoutes from './routes/LabelRoutes.js';
-import notePasswordRoutes from './routes/NotePasswordRoutes.js';
-import tableNoteRoutes from './routes/TableNoteRoutes.js';
-import exportRoutes from './routes/ExportRoutes.js';
-import importRoutes from './routes/ImportRoutes.js';
-import tokenRoutes from './routes/TokenRoutes.js';
+import { AppDataSource } from './DataSource.ts';
+import loginRoutets from './routes/LoginRoutes.ts';
+import logoutRoutets from './routes/LogoutRoutes.ts';
+import userRoutes from './routes/UserRoutes.ts';
+import noteRoutes from './routes/NoteRoutes.ts';
+import labelRoutes from './routes/LabelRoutes.ts';
+import notePasswordRoutes from './routes/NotePasswordRoutes.ts';
+import tableNoteRoutes from './routes/TableNoteRoutes.ts';
+import exportRoutes from './routes/ExportRoutes.ts';
+import importRoutes from './routes/ImportRoutes.ts';
+import tokenRoutes from './routes/TokenRoutes.ts';
 import { LessThan } from 'typeorm';
-import Note from './entities/Note.js';
+import Note from './entities/Note.ts';
 import cookieParser from 'cookie-parser';
-import TableNote from './entities/TableNote.js';
+import TableNote from './entities/TableNote.ts';
 import { Redis } from 'ioredis';
 import next from 'next';
 import type { NextServerOptions, NextServer } from 'next/dist/server/next.js';
@@ -85,6 +85,14 @@ app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/token', tokenRoutes);
 
+// サーバーの起動 (一度だけ呼び出す)
+export const hoardserver = await new Promise<any>((resolve) => {
+  const server = app.listen(port, '0.0.0.0', () => {
+    console.log(`> Ready on http://localhost:${port}`);
+    resolve(server);
+  });
+});
+
 // サーバー起動処理
 export async function startServer() {
 
@@ -97,14 +105,6 @@ export async function startServer() {
   // Next.js のハンドラーを最後に登録 (API以外をすべてNext.jsに流す)
   app.all('*', (req, res) => {
     return handle(req, res);
-  });
-
-  // サーバーの起動 (一度だけ呼び出す)
-  const hoardserver = await new Promise<any>((resolve) => {
-    const server = app.listen(port, '0.0.0.0', () => {
-      console.log(`> Ready on http://localhost:${port}`);
-      resolve(server);
-    });
   });
 
   // WebSocket の紐付け

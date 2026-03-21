@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
 import { idText, server } from "typescript";
 
-import Label from "../../dist/entities/Label.js";
-import type TableNote from "../../entities/TableNote.js";
-import type TableNoteColumn from "../../entities/TableNoteColumn.js";
-import TableNoteCell from "../../entities/TableNoteCell.js";
+import Label from "../../entities/Label.ts";
+import type TableNote from "../../entities/TableNote.ts";
+import type TableNoteColumn from "../../entities/TableNoteColumn.ts";
+import TableNoteCell from "../../entities/TableNoteCell.ts";
 import type { Request, Response, NextFunction } from "express";
 import { createQueryBuilder, EntityManager } from "typeorm";
 
@@ -91,7 +91,7 @@ const mockDeletedTableNoteCells: TableNoteCell[] = [
 ];
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
     authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
         next();
     }),
@@ -249,7 +249,7 @@ const mockTransaction = jest.fn(async (callback: (entityManager: EntityManager) 
     await callback(mockEntityManager as unknown as EntityManager);
 });
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
     AppDataSource: {
         initialize: jest.fn<() => Promise<any>>().mockResolvedValue(true),
         getRepository: mockGetRepository,
@@ -259,8 +259,8 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
-const AppDataSource = await import("../../dist/DataSource.js");
+const { app, hoardserver } = await import("../../server.ts");
+const AppDataSource = await import("../../DataSource.ts");
 
 describe("TableNoteRoutes", () => {
 
