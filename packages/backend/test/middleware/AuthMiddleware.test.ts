@@ -60,7 +60,7 @@ describe('AuthMiddleware', () => {
 
         mockRedisGet.mockResolvedValueOnce('valid');
 
-        const req = { cookies: { accessToken:token }, user: undefined } as any;
+        const req = { cookies: { accessToken:token }, user: undefined, headers: {}, method: 'GET' } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
@@ -80,7 +80,7 @@ describe('AuthMiddleware', () => {
 
         mockRedisGet.mockResolvedValueOnce(null);
 
-        const req = { cookies: { accessToken:token } } as any;
+        const req = { cookies: { accessToken:token }, headers: {}, method: 'GET' } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
@@ -93,7 +93,7 @@ describe('AuthMiddleware', () => {
 
 
     it('should return 401 for an invalid token signature', async () => {
-        const req = { cookies: { accessToken: 'invalid-signature-token' } } as any;
+        const req = { cookies: { accessToken: 'invalid-signature-token' }, headers: {}, method: 'GET' } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
@@ -105,7 +105,7 @@ describe('AuthMiddleware', () => {
     });
 
     it('should return 401 if no token is provided', async () => {
-        const req = { cookies: {} } as any;
+        const req = { cookies: {}, headers: {}, method: 'GET' } as any;
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() } as any;
         const next = jest.fn();
 
