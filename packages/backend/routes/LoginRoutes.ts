@@ -56,20 +56,20 @@ router.post('/', async (req, res) => {
 
             //アクセストークンは短命
             res.cookie("accessToken", accessToken, {
-                domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
+                domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "",
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production' ? true : false,
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                sameSite: 'strict',
                 path: "/",
                 maxAge: ACCESS_TOKEN_EXPIRY_MS
             });
 
             // リフレッシュトークンは長命
             res.cookie("refreshToken", refreshToken, {
-                domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
+                domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "",
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production' ? true : false,
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                sameSite: 'strict',
                 path: "/",
                 maxAge: REFRESH_TOKEN_EXPIRY_MS
             });

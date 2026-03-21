@@ -32,7 +32,7 @@ cp docker-compose_sample.yml docker-compose.yml
 
 cp .env_sample .env
 ```
-Next, enter your server's domain name in COOKIE_DOMAIN in .env.
+Next, enter your server's domain name in DOMAIN in .env.
 
 And if you want to customise connection setting, edit these files.
 

@@ -103,19 +103,19 @@ router.post('/refresh', async (req, res) => {
         await redis.set(`refreshToken:${newRefreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY);
 
         res.cookie("accessToken", newAccessToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "localhost",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: 15 * 60 * 1000
         });
 
         res.cookie("refreshToken", newRefreshToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "localhost",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
