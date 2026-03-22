@@ -58,20 +58,43 @@ app.use(cors({
   credentials: true
 }));
 
-// Redis / PostgreSQL 設定
-export const redis = new Redis({
-  host: process.env.REDIS_HOST || 'redis',
-  port: 6379
-});
+// Redis / PostgreSQL 設定 (遅延初期化)
+export let redis: Redis | null = null;
+export let pool: pg.Pool | null = null;
+export let hoardserver: any | null = null;
 
-const { Pool } = pg;
-const pool = new Pool({
-  host: process.env.PG_HOST || 'localhost',
-  port: process.env.PG_PORT || 5432,
-  user: process.env.PG_USER || 'postgres',
-  password: process.env.PG_PASSWORD || 'password',
-  database: process.env.PG_DATABASE || 'mydatabase',
-});
+// サーバーリソースの初期化
+export async function initializeServer() {
+  // Redis の初期化
+  if (!redis) {
+    redis = new Redis({
+      host: process.env.REDIS_HOST || 'redis',
+      port: 6379
+    });
+  }
+
+  // PostgreSQL の初期化
+  if (!pool) {
+    const { Pool } = pg;
+    pool = new Pool({
+      host: process.env.PG_HOST || 'localhost',
+      port: process.env.PG_PORT || 5432,
+      user: process.env.PG_USER || 'postgres',
+      password: process.env.PG_PASSWORD || 'password',
+      database: process.env.PG_DATABASE || 'mydatabase',
+    });
+  }
+
+  // サーバーの起動
+  if (!hoardserver && process.env.NODE_ENV !== 'test') {
+    hoardserver = await new Promise<any>((resolve) => {
+      const server = app.listen(8120, '0.0.0.0', () => {
+        console.log(`> Ready on http://localhost:8120`);
+        resolve(server);
+      });
+    });
+  }
+}
 
 // API ルート定義
 app.use('/api/login', loginRoutets);
@@ -85,16 +108,10 @@ app.use('/api/export', exportRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/token', tokenRoutes);
 
-// サーバーの起動 (一度だけ呼び出す)
-export const hoardserver = await new Promise<any>((resolve) => {
-  const server = app.listen(port, '0.0.0.0', () => {
-    console.log(`> Ready on http://localhost:${port}`);
-    resolve(server);
-  });
-});
-
 // サーバー起動処理
 export async function startServer() {
+  // サーバーリソースの初期化
+  await initializeServer();
 
   await nextApp.prepare();
 
@@ -111,17 +128,19 @@ export async function startServer() {
   const wss = new WebSocketServer({ noServer: true });
 
   // HTTPサーバーのアップグレードイベントを横取りする
-  hoardserver.on('upgrade', (request: any, socket: any, head: any) => {
-    const { pathname } = new URL(request.url, `http://${request.headers.host}`);
+  if (hoardserver) {
+    hoardserver.on('upgrade', (request: any, socket: any, head: any) => {
+      const { pathname } = new URL(request.url, `http://${request.headers.host}`);
 
-    if (pathname === '/api/ws' || pathname === '/ws') {
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-      });
-    } else {
-      // それ以外のアップグレード（Next.jsのHMRなど）はそのまま流す
-    }
-  });
+      if (pathname === '/api/ws' || pathname === '/ws') {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit('connection', ws, request);
+        });
+      } else {
+        // それ以外のアップグレード（Next.jsのHMRなど）はそのまま流す
+      }
+    });
+  }
   wss.on('connection', (ws) => {
     console.log('Client connected');
     ws.on('close', () => console.log('Client disconnected'));
@@ -147,6 +166,11 @@ export async function deleteOldNotes() {
   } catch (error) {
     console.error('Error deleting old notes:', error);
   }
+}
+
+export async function closeResources() {
+  if (redis) await redis.quit();
+  if (pool) await pool.end();
 }
 
 // 実行

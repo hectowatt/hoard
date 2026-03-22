@@ -9,7 +9,7 @@ import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
     Redis: jest.fn().mockImplementation(() => ({
         set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
         get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
@@ -78,9 +78,12 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../server.ts");
+const { app, initializeServer } = await import("../../server.ts");
 
 describe("PasswordRoutes", () => {
+    beforeAll(async () => {
+        await initializeServer();
+    });
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -116,7 +119,7 @@ describe("PasswordRoutes", () => {
     });
 
     it("POST /password and error occured should return 500 and message", async () => {
-        mockRepo.save.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+        mockRepo.save.mockRejectedValueOnce(new Error("DB save error"));
         const response = await request(app)
             .post("/api/password")
             .send({ passwordString: "testpassword" });
@@ -134,7 +137,7 @@ describe("PasswordRoutes", () => {
     });
 
     it("GET /password should return 200 and password id", async () => {
-        mockRepo.find.mockImplementationOnce(() => Promise.resolve(mockPasswordUndefined));
+        mockRepo.find.mockResolvedValueOnce(mockPasswordUndefined);
         const response = await request(app)
             .get("/api/password");
 
@@ -143,7 +146,7 @@ describe("PasswordRoutes", () => {
     });
 
     it("GET /password and error occured should return 500 and message", async () => {
-        mockRepo.find.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+        mockRepo.find.mockRejectedValueOnce(new Error("DB save error"));
         const response = await request(app)
             .get("/api/password");
 
@@ -170,7 +173,7 @@ describe("PasswordRoutes", () => {
     });
 
     it("PUT /password and error occured should return 404 and message", async () => {
-        mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+        mockRepo.findOneBy.mockRejectedValueOnce(new Error("DB save error"));
         const response = await request(app)
             .put("/api/password")
             .send({ password_id: "1", passwordString: "updatedpassword" });
@@ -180,7 +183,7 @@ describe("PasswordRoutes", () => {
     });
 
     it("PUT /password without password_id should return 400 and message", async () => {
-        mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+        mockRepo.findOneBy.mockRejectedValueOnce(new Error("DB save error"));
         const response = await request(app)
             .put("/api/password")
             .send({ passwordString: "updatedpassword" });
@@ -190,12 +193,6 @@ describe("PasswordRoutes", () => {
     });
 
     afterAll(async () => {
-        if (hoardserver) {
-            await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
-            });
-        };
-
         if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
             try {
                 await AppDataSource.destroy();

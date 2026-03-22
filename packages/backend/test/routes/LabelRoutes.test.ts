@@ -96,7 +96,7 @@ describe("/labels", () => {
   });
 
   it("POST /labels and Error occured should return 500 and message", async () => {
-    mockRepo.save.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+    mockRepo.save.mockRejectedValueOnce(new Error("DB save error"));
 
 
     const res = await request(app)
@@ -128,7 +128,7 @@ describe("/labels", () => {
   });
 
   it("GET /labels and Error occured should return 500 and message", async () => {
-    mockRepo.find.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepo.find.mockRejectedValueOnce(new Error("DB find error"));
 
     const res = await request(app)
       .get("/api/labels");
@@ -154,7 +154,7 @@ describe("/labels", () => {
   });
 
   it("DELETE /labels and Error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepo.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
 
     const res = await request(app)
       .delete("/api/labels/1");
@@ -166,7 +166,7 @@ describe("/labels", () => {
   afterAll(async () => {
     if (hoardserver) {
       await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
+        hoardserver.close((err: Error) => (err ? reject(err) : resolve()));
       });
     };
 

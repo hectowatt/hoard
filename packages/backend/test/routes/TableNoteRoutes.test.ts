@@ -12,7 +12,7 @@ import type { Request, Response, NextFunction } from "express";
 import { createQueryBuilder, EntityManager } from "typeorm";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
     Redis: jest.fn().mockImplementation(() => ({
         set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
         get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
@@ -197,11 +197,11 @@ const mockRepoTableNoteCell = {
         return Promise.resolve(mockTableNoteCells);
     }),
     findOneBy: jest.fn(({ id }) => {
-        if (id === mockTableNoteCells[0][0].id) {
+        if (id === mockTableNoteCells[0].id) {
             return Promise.resolve(mockTableNoteCells[0]);
-        } else if (id === mockTableNoteCells[0][1].id) {
+        } else if (id === mockTableNoteCells[1].id) {
             return Promise.resolve(mockTableNoteCells[1]);
-        } else if (id === mockTableNoteCells[1][0].id) {
+        } else if (id === mockTableNoteCells[2].id) {
             return Promise.resolve(mockTableNoteCells[2]);
         }
         return Promise.resolve(null);
@@ -259,11 +259,13 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../server.ts");
+const { app, initializeServer } = await import("../../server.ts");
 const AppDataSource = await import("../../DataSource.ts");
 
 describe("TableNoteRoutes", () => {
-
+   beforeAll(async () => {
+        await initializeServer();
+    });
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -299,7 +301,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("GET /tablenotes/:1 and error occured should return 500 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+        mockRepoTableNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
         const response = await request(app)
             .get("/api/tablenotes/1");
 
@@ -465,7 +467,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes and cannot find tablenote should return 404 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(null));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(null);
         const response = await request(app)
             .put("/api/tablenotes")
             .send({ id: "1", title: "updated title", columns: [mockTableNoteColumns[0]], rowCells: [[]], label: mockLabels[0], is_locked: false, is_pinned: false });
@@ -493,7 +495,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("DELETE /tablenotes and cannot find tablenote should return 404 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(null));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(null);
         const response = await request(app)
             .delete("/api/tablenotes/1");
 
@@ -552,7 +554,7 @@ describe("TableNoteRoutes", () => {
     /************ TrashNote ************/
 
     it("GET /tablenotes/trash should return 200 and trash tablenotes", async () => {
-        mockRepoTableNote.find.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.find.mockResolvedValueOnce(mockDeletedTableNotes);
         const response = await request(app)
             .get("/api/tablenotes/trash");
 
@@ -581,7 +583,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("DELETE /tablenotes/trash should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(mockDeletedTableNotes[0]);
 
         const response = await request(app)
             .delete("/api/tablenotes/trash/3");
@@ -591,9 +593,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("DELETE /tablenotes/trash with NOT exists id should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }:{id:string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -617,7 +619,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/trash should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(mockDeletedTableNotes[0]);
 
         const response = await request(app)
             .put("/api/tablenotes/trash/3")
@@ -631,9 +633,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/trash with NOT exists id should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }: {id: string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -657,7 +659,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/lock should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(mockDeletedTableNotes[0]);
 
         const response = await request(app)
             .put("/api/tablenotes/lock")
@@ -674,9 +676,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/lock with NOT exists id should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }:{id: string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -691,9 +693,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/lock with NO id should return 400 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }:{id: string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -731,19 +733,6 @@ describe("TableNoteRoutes", () => {
 
 
     afterAll(async () => {
-        if (hoardserver) {
-            await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
-            });
-        };
-
-        if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
-            try {
-                await AppDataSource.destroy();
-            } catch (error) {
-            }
-        };
-
         jest.clearAllTimers();
     });
 })

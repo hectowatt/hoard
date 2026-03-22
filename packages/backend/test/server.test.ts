@@ -51,7 +51,7 @@ jest.unstable_mockModule('../DataSource.ts', () => ({
 }));
 
 // モジュールをインポート
-const { app, deleteOldNotes, startServer } = await import("../server.ts");
+const { app, deleteOldNotes, startServer,closeResources } = await import("../server.ts");
 const { AppDataSource } = await import("../DataSource.ts");
 
 describe('Server Tests', () => {
@@ -75,6 +75,8 @@ describe('Server Tests', () => {
     }
     await AppDataSource.destroy();
 
+    await closeResources();
+
     jest.clearAllTimers();
     jest.useRealTimers();
   });
@@ -83,49 +85,46 @@ describe('Server Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('Route Handling', () => {
-    it('GET / should be handled by Next.js (returns mock string)', async () => {
-      const response = await request(app).get('/');
-      expect(response.status).toBe(200);
-      expect(response.text).toBe('Next.js Page');
-    });
-
-    it('API routes should still respond (e.g., /api/login)', async () => {
-      const response = await request(app).get('/api/login');
-      expect(response.status).not.toBe(404);
-    });
+  it('GET / should be handled by Next.js (returns mock string)', async () => {
+    const response = await request(app).get('/');
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Next.js Page');
   });
 
-  describe('deleteOldNotes', () => {
-    it('should call delete on repositories for notes older than 7 days', async () => {
-      const mockDate = new Date('2025-01-15T12:00:00Z');
-      const dateSpy = jest.spyOn(Date, 'now').mockImplementation(() => mockDate.getTime());
-
-      await deleteOldNotes();
-
-      expect(mockGetRepository).toHaveBeenCalledWith(Note);
-      expect(mockGetRepository).toHaveBeenCalledWith(TableNote);
-      expect(mockRepoNote.delete).toHaveBeenCalledTimes(1);
-      expect(mockRepoTableNote.delete).toHaveBeenCalledTimes(1);
-
-      // deleteの引数が七日前の日付（LessThan）になっているかチェック
-      const sevenDaysAgo = new Date(mockDate.getTime() - 7 * 24 * 60 * 60 * 1000);
-      expect(mockRepoNote.delete).toHaveBeenCalledWith({
-        is_deleted: true,
-        deletedate: LessThan(sevenDaysAgo)
-      });
-
-      dateSpy.mockRestore();
-    });
-
-    it('should log error if database operation fails', async () => {
-      mockRepoNote.delete.mockRejectedValueOnce(new Error('DB Error'));
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
-
-      await deleteOldNotes();
-
-      expect(consoleSpy).toHaveBeenCalledWith('Error deleting old notes:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
+  it('API routes should still respond (e.g., /api/login)', async () => {
+    const response = await request(app).get('/api/login');
+    expect(response.status).not.toBe(404);
   });
+
+  it('should call delete on repositories for notes older than 7 days', async () => {
+    const mockDate = new Date('2025-01-15T12:00:00Z');
+    const dateSpy = jest.spyOn(Date, 'now').mockImplementation(() => mockDate.getTime());
+
+    await deleteOldNotes();
+
+    expect(mockGetRepository).toHaveBeenCalledWith(Note);
+    expect(mockGetRepository).toHaveBeenCalledWith(TableNote);
+    expect(mockRepoNote.delete).toHaveBeenCalledTimes(1);
+    expect(mockRepoTableNote.delete).toHaveBeenCalledTimes(1);
+
+    // deleteの引数が七日前の日付（LessThan）になっているかチェック
+    const sevenDaysAgo = new Date(mockDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    expect(mockRepoNote.delete).toHaveBeenCalledWith({
+      is_deleted: true,
+      deletedate: LessThan(sevenDaysAgo)
+    });
+
+    dateSpy.mockRestore();
+  });
+
+  it('should log error if database operation fails', async () => {
+    mockRepoNote.delete.mockRejectedValueOnce(new Error('DB Error'));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
+
+    await deleteOldNotes();
+
+    expect(consoleSpy).toHaveBeenCalledWith('Error deleting old notes:', expect.any(Error));
+    consoleSpy.mockRestore();
+  });
+
 });

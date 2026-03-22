@@ -68,7 +68,7 @@ describe('Token Refresh Interval', () => {
             statusText: 'Unauthorized',
         } as Response);
 
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementationOnce(() => Promise.resolve());
+        const consoleSpy = jest.spyOn(console, 'error').mockImplementationOnce(() => undefined);
         
         startTokenRefreshInterval();
 

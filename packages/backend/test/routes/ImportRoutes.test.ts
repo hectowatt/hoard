@@ -123,7 +123,7 @@ describe("POST /api/import", () => {
     afterAll(async () => {
         if (hoardserver) {
             await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
+                hoardserver.close((err: Error) => (err ? reject(err) : resolve()));
             });
         };
 

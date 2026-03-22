@@ -9,7 +9,7 @@ import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
   Redis: jest.fn().mockImplementation(() => ({
     set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
     get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
@@ -47,7 +47,7 @@ const mockLabels = [
 ]
 
 // ノートのモック
-const mockNotes = [
+const mockNotes: Note[] = [
   { id: "1", title: "test title1", content: "test content1", label_id: "1", label: mockLabels[0], is_deleted: false, is_pinned: false, deletedate: null, is_locked: false, createdate: new Date(), updatedate: new Date() },
   { id: "2", title: "test title2", content: "test content2", label_id: "2", label: mockLabels[1], is_deleted: false, is_pinned: false, deletedate: null, is_locked: true, createdate: new Date(), updatedate: new Date() }
 ]
@@ -123,10 +123,12 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../server.ts");
+const { app, initializeServer } = await import("../../server.ts");
 
 describe("NoteRoutes", () => {
-
+   beforeAll(async () => {
+        await initializeServer();
+    });
   beforeEach(() => {
     jest.clearAllMocks();
     mockRepoNote.findOneBy.mockImplementation(({ id }) => {
@@ -156,7 +158,7 @@ describe("NoteRoutes", () => {
   });
 
   it("GET /notes/:1 and error occured should return 500 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
     const response = await request(app)
       .get("/api/notes/1");
 
@@ -226,7 +228,7 @@ describe("NoteRoutes", () => {
   });
 
   it("GET /notes and Error occured should return 500 and error message", async () => {
-    mockRepoNote.find.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.find.mockRejectedValueOnce(new Error("DB find error"));
 
     const response = await request(app).get("/api/notes");
 
@@ -255,7 +257,7 @@ describe("NoteRoutes", () => {
   });
 
   it("POST /notes and Error occured should return 500 and message", async () => {
-    mockRepoNote.save.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+    mockRepoNote.save.mockRejectedValueOnce(new Error("DB save error"));
 
     const response = await request(app)
       .post("/api/notes")
@@ -310,7 +312,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes and Error occured should return 500 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
 
     const response = await request(app)
       .put("/api/notes")
@@ -337,7 +339,7 @@ describe("NoteRoutes", () => {
   });
 
   it("DELETE /notes and Error occured should return 500 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
 
     const response = await request(app)
       .delete("/api/notes/1");
@@ -387,7 +389,7 @@ describe("NoteRoutes", () => {
   /************ TrashNote ************/
 
   it("GET /notes/trash should return deleted notes", async () => {
-    mockRepoNote.find.mockImplementationOnce(() => Promise.resolve(mockDeletedNotes));
+    mockRepoNote.find.mockResolvedValueOnce([mockDeletedNotes[0]]);
     const response = await request(app)
       .get("/api/notes/trash");
 
@@ -405,7 +407,7 @@ describe("NoteRoutes", () => {
   });
 
   it("GET /notes/trash and error occured should return 500 and message", async () => {
-    mockRepoNote.find.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.find.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .get("/api/notes/trash");
 
@@ -414,7 +416,7 @@ describe("NoteRoutes", () => {
   });
 
   it("DELETE /notes/trash:2 should return 200 and message", async () => {
-    mockRepoNote.remove.mockImplementationOnce(() => Promise.resolve());
+    mockRepoNote.remove.mockResolvedValueOnce(mockDeletedNotes[0]);
     const response = await request(app)
       .delete("/api/notes/trash/2");
 
@@ -431,7 +433,7 @@ describe("NoteRoutes", () => {
   });
 
   it("DELETE /notes/trash:2 and error occured should return 500 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .delete("/api/notes/trash/2");
 
@@ -440,7 +442,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/trash should return 200 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedNotes[0]));
+    mockRepoNote.findOneBy.mockResolvedValueOnce(mockDeletedNotes[0]);
     const response = await request(app)
       .put("/api/notes/trash/3");
 
@@ -460,7 +462,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/trash and error occured should return 500 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .put("/api/notes/trash/3");
 
@@ -498,7 +500,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/lock and error occured should return 500 and message", async () => {
-    mockRepoNote.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .put("/api/notes/lock")
       .send({ id: "1", isLocked: true });
@@ -530,12 +532,6 @@ describe("NoteRoutes", () => {
 
 
   afterAll(async () => {
-    if (hoardserver) {
-      await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
-      });
-    };
-
     if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
       try {
         await AppDataSource.destroy();

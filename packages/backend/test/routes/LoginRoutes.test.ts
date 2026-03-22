@@ -6,7 +6,7 @@ import { AppDataSource } from "../../DataSource.ts";
 import { server } from "typescript";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
   Redis: jest.fn().mockImplementation(() => ({
     set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
     get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
@@ -36,10 +36,13 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../server.ts");
+const { app, initializeServer } = await import("../../server.ts");
 
 
 describe("POST /login", () => {
+  beforeAll(async () => {
+    await initializeServer();
+  });
   it("should return 200 and set cookie when login succeeds", async () => {
     const res = await request(app)
       .post("/api/login")
@@ -76,12 +79,6 @@ describe("POST /login", () => {
   });
 
   afterAll(async () => {
-    if (hoardserver) {
-      await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
-      });
-    };
-
 
     if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
       try {
