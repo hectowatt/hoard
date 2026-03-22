@@ -2,11 +2,11 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 import { idText, server } from "typescript";
 
-import Label from "../../dist/entities/Label.js";
-import { authMiddleware } from "../../middleware/AuthMiddleware.js";
+import Label from "../../entities/Label.ts";
+import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
@@ -24,7 +24,7 @@ const mockLabels = [
 ]
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
   authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
     next();
   }),
@@ -63,7 +63,7 @@ const mockRepo = {
   remove: jest.fn((label: Label) => Promise.resolve(label)),
 };
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
   AppDataSource: {
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
     getRepository: jest.fn().mockImplementation(() => mockRepo),
@@ -71,7 +71,7 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, hoardserver } = await import("../../server.ts");
 
 describe("/labels", () => {
   it("POST /labels should return 201 and message, registered label", async () => {
@@ -96,7 +96,7 @@ describe("/labels", () => {
   });
 
   it("POST /labels and Error occured should return 500 and message", async () => {
-    mockRepo.save.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+    mockRepo.save.mockRejectedValueOnce(new Error("DB save error"));
 
 
     const res = await request(app)
@@ -128,7 +128,7 @@ describe("/labels", () => {
   });
 
   it("GET /labels and Error occured should return 500 and message", async () => {
-    mockRepo.find.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepo.find.mockRejectedValueOnce(new Error("DB find error"));
 
     const res = await request(app)
       .get("/api/labels");
@@ -154,7 +154,7 @@ describe("/labels", () => {
   });
 
   it("DELETE /labels and Error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepo.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
 
     const res = await request(app)
       .delete("/api/labels/1");
@@ -166,7 +166,7 @@ describe("/labels", () => {
   afterAll(async () => {
     if (hoardserver) {
       await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
+        hoardserver.close((err: Error) => (err ? reject(err) : resolve()));
       });
     };
 

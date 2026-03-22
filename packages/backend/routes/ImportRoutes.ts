@@ -1,17 +1,17 @@
 import { Router } from "express";
 import AdmZip from "adm-zip";
 import { parse } from "csv-parse/sync";
-import { AppDataSource } from "../DataSource.js";
-import Note from "../entities/Note.js";
-import Label from "../entities/Label.js";
+import { AppDataSource } from "../DataSource.ts";
+import Note from "../entities/Note.ts";
+import Label from "../entities/Label.ts";
 import multer from "multer";
-import NotePassword from "../entities/NotePassword.js";
-import TableNote from "../entities/TableNote.js";
-import TableNoteColumn from "../entities/TableNoteColumn.js";
-import TableNoteCell from "../entities/TableNoteCell.js";
+import NotePassword from "../entities/NotePassword.ts";
+import TableNote from "../entities/TableNote.ts";
+import TableNoteColumn from "../entities/TableNoteColumn.ts";
+import TableNoteCell from "../entities/TableNoteCell.ts";
 import fs from "fs/promises";
 import path from "path";
-import { authMiddleware } from "../middleware/AuthMiddleware.js";
+import { authMiddleware } from "../middleware/AuthMiddleware.ts";
 
 const upload = multer({ dest: "uploads/" });
 const router = Router();

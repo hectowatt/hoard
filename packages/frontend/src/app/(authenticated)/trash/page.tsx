@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Container, Grid } from "@mui/material";
+import { Button, Container, Dialog, DialogContent, DialogTitle, Grid } from "@mui/material";
 import { useLabelContext } from "@/app/(authenticated)/context/LabelProvider";
 import TrashNote from "@/app/(authenticated)/components/TrashNote";
 import TrashTableNote from "@/app/(authenticated)/components/TrashTableNote";
@@ -21,6 +21,8 @@ export default function Home() {
   const { t } = useTranslation();
   const { showSnackbar } = useSnackbar();
   const router = useRouter();
+  const [isConfirmAllDeleteDialogOpen, setIsConfirmAllDeleteDialogOpen] = useState(false);
+  const [isConfirmAllRestoreDialogOpen, setIsConfirmAllRestoreDialogOpen] = useState(false);
 
   // 画面描画時にDBからノートを全件取得して表示する
   const fetchTrashNotes = async () => {
@@ -181,6 +183,7 @@ export default function Home() {
       }
 
       showSnackbar(t("message_all_delete"), "success");
+      setIsConfirmAllDeleteDialogOpen(false);
       await fetchTrashNotes();
       await fetchTrashTableNotes();
 
@@ -228,6 +231,7 @@ export default function Home() {
       }
 
       showSnackbar(t("message_all_restore"), "success");
+      setIsConfirmAllRestoreDialogOpen(false);
       await fetchTrashNotes();
       await fetchTrashTableNotes();
 
@@ -237,11 +241,35 @@ export default function Home() {
     }
   }
 
+  // 一括削除確認ダイアログ
+  const ConfirmAllDeleteDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+    return (
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitle>{t("message_confirm_all_delete")}</DialogTitle>
+        <DialogContent>
+          <Button variant="contained" color="error" onClick={handleAllDelete} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_all_delete">{t("button_all_delete")}</Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // 一括復元確認ダイアログ
+  const ConfirmAllRestoreDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+    return (
+      <Dialog open={open} onClose={onClose}>
+        <DialogTitle>{t("message_confirm_all_restore")}</DialogTitle>
+        <DialogContent>
+          <Button variant="contained" onClick={handleAllRestore} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_all_restore">{t("button_all_restore")}</Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Container>
+    <Container sx={{ position: "relative" }}>
       <p data-testid="description">{t("label_trash_desc")}</p>
-      <Button variant="contained" onClick={handleAllDelete} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_all_delete">{t("button_all_delete")}</Button>
-      <Button variant="contained" onClick={handleAllRestore} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_all_restore">{t("button_all_restore")}</Button>
+      <Button variant="contained" onClick={() => setIsConfirmAllDeleteDialogOpen(true)} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_confirm_all_delete">{t("button_all_delete")}</Button>
+      <Button variant="contained" onClick={() => setIsConfirmAllRestoreDialogOpen(true)} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_confirm_all_restore">{t("button_all_restore")}</Button>
       <Grid container spacing={2}>
         {trashNotes.map(note => (
           <Grid key={note.id}>
@@ -275,6 +303,8 @@ export default function Home() {
           </Grid>
         ))}
       </Grid>
+      <ConfirmAllDeleteDialog open={isConfirmAllDeleteDialogOpen} onClose={() => setIsConfirmAllDeleteDialogOpen(false)} data-testid="comfirmAllDeleteButton" />
+      <ConfirmAllRestoreDialog open={isConfirmAllRestoreDialogOpen} onClose={() => setIsConfirmAllRestoreDialogOpen(false)} data-testid="comfirmAllRestoreButton" />
     </Container>
   );
 }

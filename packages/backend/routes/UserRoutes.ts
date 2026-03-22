@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.js';
-import { authMiddleware } from '../middleware/AuthMiddleware.js';
-import HoardUser from '../entities/HoardUser.js';
+import { AppDataSource } from '../DataSource.ts';
+import { authMiddleware } from '../middleware/AuthMiddleware.ts';
+import HoardUser from '../entities/HoardUser.ts';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { redis } from '../server.js';
+import { redis } from '../server.ts';
 import { nanoid } from 'nanoid';
 
 const router = Router();
@@ -77,20 +77,20 @@ router.post('/', async (req, res) => {
 
         //アクセストークンは短命
         res.cookie("accessToken", accessToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: ACCESS_TOKEN_EXPIRY_MS
         });
 
         // リフレッシュトークンは長命
         res.cookie("refreshToken", refreshToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "",
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: REFRESH_TOKEN_EXPIRY_MS
         });
@@ -103,9 +103,9 @@ router.post('/', async (req, res) => {
 // 【UPDATE】User更新API
 router.put('/', authMiddleware, async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, oldpassword, newpassword } = req.body;
         // cookie から JWT を取得
-        const prevAccessToken = req.cookies.get("accessToken")?.value;
+        const prevAccessToken = req.cookies.accessToken;
         if (!prevAccessToken) {
             return res.status(401).json({ error: "No token provided" });
         }
@@ -119,7 +119,6 @@ router.put('/', authMiddleware, async (req, res) => {
         if (!user_id) {
             return res.status(401).json({ error: "Invalid token" });
         }
-        const oldJti = decoded.jti;
 
         // user_id でユーザーを検索
         const userRepository = AppDataSource.getRepository(HoardUser);
@@ -127,89 +126,80 @@ router.put('/', authMiddleware, async (req, res) => {
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        const password_hashed = await bcrypt.hash(password, 10);
 
 
         if (!username) {
-            if (!password) {
+            if (!oldpassword || !newpassword) {
                 // usernameとpasswordの両方が空の場合はエラー
                 return res.status(400).json({ error: "Must set password or username" });
             } else {
                 // passwordのみ入力されている場合
-                user.password = password_hashed;
+                // パスワードの検証
+                const isMatch = await bcrypt.compare(oldpassword, user.password);
+                console.log("パスワードの一致:", isMatch);
+                if (!isMatch) {
+                    return res.status(400).json({ error: "password is incorrect" })
+                } else {
+                    const password_hashed = await bcrypt.hash(newpassword, 10);
+                    user.password = password_hashed;
+                }
             }
         } else {
-            if (!password) {
+            if (!oldpassword || !newpassword) {
                 // usernameのみ入力されている場合
                 user.username = username;
             } else {
                 // usernameとpasswordの両方が入力されている場合
-                user.username = username;
-                user.password = password_hashed;
+                // パスワードの検証
+                const isMatch = await bcrypt.compare(oldpassword, user.password);
+                console.log("パスワードの一致:", isMatch);
+                if (!isMatch) {
+                    return res.status(400).json({ error: "password is incorrect" })
+                } else {
+                    const password_hashed = await bcrypt.hash(newpassword, 10);
+                    user.username = username;
+                    user.password = password_hashed;
+                }
             }
         }
 
         user.updatedate = new Date();
         const savedUser = await userRepository.save(user);
 
-        const newJti = nanoid();
-        const newAccessToken = jwt.sign({ id: savedUser.id, username: savedUser.username, jti: newJti }, SECRET, { expiresIn: '1d' });
+        const accessJti = nanoid();
+        const refreshJti = nanoid();
+        const newAccessToken = jwt.sign({ id: savedUser.id, username: savedUser.username, jti: accessJti }, SECRET, { expiresIn: '1d' });
+        const refreshToken = jwt.sign({
+            id: user.id,
+            username: user.username,
+            jti: refreshJti
+        }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY_SEC });
 
-        if (oldJti) {
-            console.log("old jti is deleted.")
-            await redis.del(`accessToken:${oldJti}`); // 古いトークンを無効化
-        }
 
-        await redis.set(`accessToken:${newJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC); // 新しいトークンを登録
+        await redis.set(`accessToken:${accessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC); // 新しいトークンを登録
+        await redis.set(`refreshToken:${refreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY_SEC);
         console.log("new jti is set.")
 
         res.cookie("accessToken", newAccessToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost", // 本番はenvファイルの設定を使用,
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "localhost", // 本番はenvファイルの設定を使用,
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: ACCESS_TOKEN_EXPIRY_MS
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production' ? true : false,
+            sameSite: 'strict',
+            path: "/",
+            maxAge: REFRESH_TOKEN_EXPIRY_MS
         });
         res.status(201).json({ message: "update user success!" });
     } catch (error) {
         return res.status(500).json({ message: "Internal server error" });
-    }
-});
-
-// 【SELECT】パスワード比較API（リクエスト値とDBのハッシュ化されたパスワードが一致するかを返却）
-router.post('/compare', authMiddleware, async (req, res) => {
-    try {
-        // cookie から JWT を取得
-        const accessToken = req.cookies.get("accessToken")?.value;
-        if (!accessToken) {
-            return res.status(401).json({ error: "No token provided" });
-        }
-
-        // JWT を検証・デコード
-        const decoded = jwt.verify(accessToken, SECRET);
-        const user_id = typeof decoded !== 'string' && 'id' in decoded ? decoded.id : null;
-
-        const passwordString = req.body.passwordString;
-        if (!passwordString) {
-            return res.status(400).json({ error: "Must set password string" });
-        }
-
-        // user_id でユーザーを検索
-        const userRepository = AppDataSource.getRepository(HoardUser);
-        const user = await userRepository.findOneBy({ id: user_id });
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        // パスワード比較
-        const isMatch = await bcrypt.compare(passwordString, user.password);
-        console.log("パスワードの一致:", isMatch);
-
-        res.status(200).json({ isMatch });
-    } catch (error) {
-        console.error("Error comparing password:", error);
-        return res.status(500).json({ error: 'Failed to compare password' });
     }
 });
 

@@ -1,7 +1,7 @@
 import request from "supertest";
 import { jest } from '@jest/globals';
 import type { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../../dist/DataSource.js";
+import { AppDataSource } from "../../DataSource.ts";
 import { server } from "typescript";
 
 // Redisのメソッドのモック関数
@@ -10,7 +10,7 @@ const mockRedisSet = jest.fn<() => Promise<"OK">>();
 const mockRedisDel = jest.fn<() => Promise<number>>();
 
 // ioredis モジュールそのものをモック化
-jest.unstable_mockModule("ioredis", () => {
+await jest.unstable_mockModule("ioredis", () => {
     return {
         Redis: jest.fn().mockImplementation(() => ({
             get: mockRedisGet,
@@ -40,9 +40,12 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
     sign: mockJwtSign,
 }));
 
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, initializeServer } = await import("../../server.ts");
 
 describe("Token Routes", () => {
+       beforeAll(async () => {
+        await initializeServer();
+    });
     afterEach(() => {
         // Cookieの値は都度初期化
         if (!global.document) {
@@ -107,13 +110,6 @@ describe("Token Routes", () => {
     });
 
     afterAll(async () => {
-        if (hoardserver) {
-            await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
-            });
-        };
-
-
         if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
             try {
                 await AppDataSource.destroy();

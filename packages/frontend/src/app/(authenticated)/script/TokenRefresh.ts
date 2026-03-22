@@ -12,6 +12,7 @@ export function startTokenRefreshInterval() {
         clearInterval(refreshInterval);
     }
 
+    console.log('Token refresh interval started');
     refreshInterval = setInterval(async () => {
         try {
             const response = await fetch('/api/token/refresh', {
@@ -44,7 +45,7 @@ export function stopTokenRefreshInterval() {
     if (refreshInterval) {
         clearInterval(refreshInterval);
         refreshInterval = null;
-        console.log('Token refresh interval stoped');
+        console.log('Token refresh interval stopped');
     }
 }
 

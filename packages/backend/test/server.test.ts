@@ -1,14 +1,24 @@
 import request from 'supertest';
-import { LessThan } from 'typeorm';
 import { jest } from '@jest/globals';
-import type { Request, Response, NextFunction } from "express";
+import { LessThan } from 'typeorm';
 
-jest.mock('../dist/entities/Note.js', () => ({
+// Next.js のモック化 (テスト時にNextサーバーを起動させないため)
+jest.unstable_mockModule('next', () => ({
+  default: jest.fn().mockReturnValue({
+    prepare: jest.fn().mockImplementation(() => Promise.resolve()),
+    getRequestHandler: jest.fn().mockReturnValue((req: any, res: any) => {
+      res.status(200).send('Next.js Page');
+    }),
+  }),
+}));
+
+// エンティティのモック化
+jest.unstable_mockModule('../entities/Note', () => ({
   __esModule: true,
   default: class Note { },
 }));
 
-jest.mock('../dist/entities/TableNote.js', () => ({
+jest.unstable_mockModule('../entities/TableNote', () => ({
   __esModule: true,
   default: class TableNote { },
 }));
@@ -20,18 +30,19 @@ const mockRepoTableNote = {
   delete: jest.fn((tableNote) => Promise.resolve(tableNote)),
 };
 
-const NoteModule = await import('../dist/entities/Note.js');
-const TableNoteModule = await import('../dist/entities/TableNote.js');
+const NoteModule = await import('../entities/Note');
+const TableNoteModule = await import('../entities/TableNote');
 const Note = NoteModule.default;
 const TableNote = TableNoteModule.default;
 
+// DataSource のモック
 const mockGetRepository = jest.fn((entity: any) => {
-  if (entity === TableNote || entity?.name === TableNote?.name || entity?.constructor?.name === TableNote?.name) return mockRepoTableNote;
-  if (entity === Note || entity?.name === Note?.name || entity?.constructor?.name === Note?.name) return mockRepoNote;
+  if (entity === Note || entity?.name === 'Note') return mockRepoNote;
+  if (entity === TableNote || entity?.name === 'TableNote') return mockRepoTableNote;
   return {};
 });
 
-jest.unstable_mockModule('../dist/DataSource.js', () => ({
+jest.unstable_mockModule('../DataSource.ts', () => ({
   AppDataSource: {
     getRepository: mockGetRepository,
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
@@ -39,59 +50,51 @@ jest.unstable_mockModule('../dist/DataSource.js', () => ({
   },
 }));
 
-const { app, deleteOldNotes, startServer } = await import("../dist/server.js");
-const DataSourceModule = await import("../dist/DataSource.js");
-const AppDataSource = DataSourceModule.AppDataSource;
+// モジュールをインポート
+const { app, deleteOldNotes, startServer,closeResources } = await import("../server.ts");
+const { AppDataSource } = await import("../DataSource.ts");
 
 describe('Server Tests', () => {
-
-  let hoardserver;
+  let serverInstance: any;
+  let wssInstance: any;
 
   beforeAll(async () => {
     // サーバーを起動
     const result = await startServer();
-    hoardserver = result.server;
+    serverInstance = result.hoardserver;
+    wssInstance = result.wss;
   });
 
   afterAll(async () => {
     // サーバーを停止
-    if (hoardserver) {
-      await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
-      });
+    if (serverInstance) {
+      await new Promise<void>((resolve) => serverInstance.close(() => resolve()));
     }
-
-    if (hoardserver?.wss && typeof hoardserver.wss.close === "function") {
-      await new Promise<void>((resolve) => hoardserver.wss.close(() => resolve()));
+    if (wssInstance) {
+      wssInstance.close();
     }
+    await AppDataSource.destroy();
 
-    if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
-      try {
-        await AppDataSource.destroy();
-      } catch (error) {
-      }
-    }
+    await closeResources();
 
-    // すべてのTimerをクリア
     jest.clearAllTimers();
     jest.useRealTimers();
-
-    // すべてのmockをクリア
-    jest.clearAllMocks();
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-
-  it('GET / should respond with a welcome message', async () => {
-    const response = await request(app).get('/').set('Cookie', ['refreshToken=dummy-valid-token', 'accessToken=dummy-valid-token']);;
+  it('GET / should be handled by Next.js (returns mock string)', async () => {
+    const response = await request(app).get('/');
     expect(response.status).toBe(200);
-    expect(response.text).toBe('WebSocket Server is running');
+    expect(response.text).toBe('Next.js Page');
   });
 
-
+  it('API routes should still respond (e.g., /api/login)', async () => {
+    const response = await request(app).get('/api/login');
+    expect(response.status).not.toBe(404);
+  });
 
   it('should call delete on repositories for notes older than 7 days', async () => {
     const mockDate = new Date('2025-01-15T12:00:00Z');
@@ -104,11 +107,18 @@ describe('Server Tests', () => {
     expect(mockRepoNote.delete).toHaveBeenCalledTimes(1);
     expect(mockRepoTableNote.delete).toHaveBeenCalledTimes(1);
 
+    // deleteの引数が七日前の日付（LessThan）になっているかチェック
+    const sevenDaysAgo = new Date(mockDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+    expect(mockRepoNote.delete).toHaveBeenCalledWith({
+      is_deleted: true,
+      deletedate: LessThan(sevenDaysAgo)
+    });
+
     dateSpy.mockRestore();
   });
 
-  it('should not throw an error if the database operation fails', async () => {
-    mockRepoNote.delete.mockImplementationOnce(() => Promise.reject(new Error('DB Error')));
+  it('should log error if database operation fails', async () => {
+    mockRepoNote.delete.mockRejectedValueOnce(new Error('DB Error'));
     const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
     await deleteOldNotes();

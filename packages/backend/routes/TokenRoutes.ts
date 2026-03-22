@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.js';
+import { AppDataSource } from '../DataSource.ts';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import 'dotenv/config';
 import bcrypt from "bcrypt";
 import { nanoid } from 'nanoid';
-import { redis } from '../server.js';
+import { redis } from '../server.ts';
 
 const router = Router();
 const SECRET: string = process.env.SECRET || 'hoard_secret';
@@ -94,7 +94,7 @@ router.post('/refresh', async (req, res) => {
         );
 
         const newRefreshToken = jwt.sign(
-            { id: decoded.id, username: decoded.username, jti: newAccessJti },
+            { id: decoded.id, username: decoded.username, jti: newRefreshJti },
             REFRESH_SECRET,
             { expiresIn: REFRESH_TOKEN_EXPIRY }
         );
@@ -103,19 +103,19 @@ router.post('/refresh', async (req, res) => {
         await redis.set(`refreshToken:${newRefreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY);
 
         res.cookie("accessToken", newAccessToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "localhost",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: 15 * 60 * 1000
         });
 
         res.cookie("refreshToken", newRefreshToken, {
-            domain: process.env.NODE_ENV === 'production' ? process.env.COOKIE_DOMAIN : "localhost",
+            domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "localhost",
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production' ? true : false,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            sameSite: 'strict',
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });

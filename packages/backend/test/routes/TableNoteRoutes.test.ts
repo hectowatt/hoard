@@ -4,19 +4,38 @@ import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
 import { idText, server } from "typescript";
 
-import Label from "../../dist/entities/Label.js";
-import type TableNote from "../../entities/TableNote.js";
-import type TableNoteColumn from "../../entities/TableNoteColumn.js";
-import TableNoteCell from "../../entities/TableNoteCell.js";
+import Label from "../../entities/Label.ts";
+import type TableNote from "../../entities/TableNote.ts";
+import type TableNoteColumn from "../../entities/TableNoteColumn.ts";
+import TableNoteCell from "../../entities/TableNoteCell.ts";
 import type { Request, Response, NextFunction } from "express";
 import { createQueryBuilder, EntityManager } from "typeorm";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
     Redis: jest.fn().mockImplementation(() => ({
         set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
         get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
     })),
+}));
+
+
+// bcrypt のモックを変数化
+const mockBcrypt = {
+    compare: jest.fn().mockImplementation((password, hashed) => {
+        if (password !== null && password === hashed) {
+            return Promise.resolve(true);
+        } else {
+            return Promise.resolve(false);
+        }
+    }),
+    hash: jest.fn().mockImplementation((password, saltRounds) => {
+        return Promise.resolve("hashed_" + password);
+    }),
+};
+
+jest.unstable_mockModule("bcrypt", () => ({
+    default: mockBcrypt,
 }));
 
 const mockExecute = jest.fn(() => Promise.resolve({ affected: 1 }));
@@ -72,7 +91,7 @@ const mockDeletedTableNoteCells: TableNoteCell[] = [
 ];
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
     authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
         next();
     }),
@@ -82,6 +101,14 @@ jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
 const mockRepoTableNote = {
     find: jest.fn(() => Promise.resolve(mockTableNotes)),
     findOneBy: jest.fn(({ id }) => {
+        if (id === mockTableNotes[0].id) {
+            return Promise.resolve(mockTableNotes[0]);
+        } else if (id === mockTableNotes[1].id) {
+            return Promise.resolve(mockTableNotes[1]);
+        }
+        return Promise.resolve(null);
+    }),
+    findOne: jest.fn(({ id }) => {
         if (id === mockTableNotes[0].id) {
             return Promise.resolve(mockTableNotes[0]);
         } else if (id === mockTableNotes[1].id) {
@@ -170,11 +197,11 @@ const mockRepoTableNoteCell = {
         return Promise.resolve(mockTableNoteCells);
     }),
     findOneBy: jest.fn(({ id }) => {
-        if (id === mockTableNoteCells[0][0].id) {
+        if (id === mockTableNoteCells[0].id) {
             return Promise.resolve(mockTableNoteCells[0]);
-        } else if (id === mockTableNoteCells[0][1].id) {
+        } else if (id === mockTableNoteCells[1].id) {
             return Promise.resolve(mockTableNoteCells[1]);
-        } else if (id === mockTableNoteCells[1][0].id) {
+        } else if (id === mockTableNoteCells[2].id) {
             return Promise.resolve(mockTableNoteCells[2]);
         }
         return Promise.resolve(null);
@@ -195,6 +222,14 @@ const mockRepoTableNoteCell = {
     delete: jest.fn((tableNoteCell: TableNoteCell) => Promise.resolve(tableNoteCell))
 };
 
+
+const mockRepoNotePassword = {
+    findOneBy: jest.fn(({ id }) => Promise.resolve({
+        id: "hashed_password",
+        password_hashed: "hashed_password"
+    })),
+}
+
 const mockGetRepository = jest.fn((entity: { name: string }) => {
     console.log('getRepository called with:', entity?.name);
     // コンストラクタ名や静的プロパティで判定
@@ -202,6 +237,7 @@ const mockGetRepository = jest.fn((entity: { name: string }) => {
     if (entityName === 'TableNote') return mockRepoTableNote;
     if (entityName === 'TableNoteColumn') return mockRepoTableNoteColumn;
     if (entityName === 'TableNoteCell') return mockRepoTableNoteCell;
+    if (entityName === 'NotePassword') return mockRepoNotePassword;
     // デフォルトのフォールバック
     return {};
 });
@@ -213,7 +249,7 @@ const mockTransaction = jest.fn(async (callback: (entityManager: EntityManager) 
     await callback(mockEntityManager as unknown as EntityManager);
 });
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
     AppDataSource: {
         initialize: jest.fn<() => Promise<any>>().mockResolvedValue(true),
         getRepository: mockGetRepository,
@@ -223,13 +259,92 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
-const AppDataSource = await import("../../dist/DataSource.js");
+const { app, initializeServer } = await import("../../server.ts");
+const AppDataSource = await import("../../DataSource.ts");
 
 describe("TableNoteRoutes", () => {
-
+   beforeAll(async () => {
+        await initializeServer();
+    });
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("GET /tablenotes/:1 should return 200 and message", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/1");
+
+        expect(response.status).toBe(200);
+        expect(response.body.tablenote.id).toBe("1");
+        expect(response.body.tablenote.title).toBe("test title1");
+        expect(response.body.tablenote.label_id).toBe("1");
+        expect(response.body.tablenote.is_deleted).toBe(false);
+        expect(response.body.tablenote.deletedate).toBe(null);
+        expect(response.body.tablenote.is_locked).toBe(false);
+        expect(response.body.tablenote.is_pinned).toBe(false);
+        expect(response.body.tablenote).toHaveProperty("createdate");
+        expect(response.body.tablenote).toHaveProperty("updatedate");
+        expect(response.body.columns[0].id).toBe("1");
+        expect(response.body.columns[0].name).toBe("test column1");
+        expect(response.body.columns[0].order).toBe(1);
+        expect(response.body.columns[1].id).toBe("2");
+        expect(response.body.columns[1].name).toBe("test column2");
+        expect(response.body.columns[1].order).toBe(2);
+        expect(response.body.rowCells[0][0].id).toBe("1");
+        expect(response.body.rowCells[0][0].rowIndex).toBe(0);
+        expect(response.body.rowCells[0][0].value).toBe("test cell1");
+        expect(response.body.rowCells[0][0]).toHaveProperty("columnId");
+        expect(response.body.rowCells[0][1].id).toBe("2");
+        expect(response.body.rowCells[0][1].rowIndex).toBe(0);
+        expect(response.body.rowCells[0][1].value).toBe("test cell2");
+        expect(response.body.rowCells[0][1]).toHaveProperty("columnId");
+    });
+
+    it("GET /tablenotes/:1 and error occured should return 500 and message", async () => {
+        mockRepoTableNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
+        const response = await request(app)
+            .get("/api/tablenotes/1");
+
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe("Failed to get TableNote");
+    });
+
+    it("GET /tablenotes/:3 should return 404 and message", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/3");
+
+        expect(response.status).toBe(404);
+        expect(response.body.error).toBe("tablenote not found");
+    });
+
+    it("GET /tablenotes/:2?password_id=1&password_string=hashed_password should return 200 and message", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/2")
+            .query({
+                password_id: "1",
+                password_string: "hashed_password",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.tablenote.id).toBe("2");
+        expect(response.body.tablenote.title).toBe("test title2");
+        expect(response.body.columns).not.toBe(null);
+        expect(response.body.rowCells).not.toBe(null);
+    });
+
+    it("GET /tablenotes/:2?password_id=1&password_string=wrong_password should return 200 without content", async () => {
+        const response = await request(app)
+            .get("/api/tablenotes/2")
+            .query({
+                password_id: "1",
+                password_string: "wrong_password",
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.tablenote.id).toBe("2");
+        expect(response.body.tablenote.title).toBe("test title2");
+        expect(response.body.columns).toBe(null);
+        expect(response.body.rowCells).toBe(null);
     });
 
     it("PUT /tablenotes/lock and error occured should return 500 and message", async () => {
@@ -352,7 +467,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes and cannot find tablenote should return 404 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(null));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(null);
         const response = await request(app)
             .put("/api/tablenotes")
             .send({ id: "1", title: "updated title", columns: [mockTableNoteColumns[0]], rowCells: [[]], label: mockLabels[0], is_locked: false, is_pinned: false });
@@ -380,7 +495,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("DELETE /tablenotes and cannot find tablenote should return 404 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(null));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(null);
         const response = await request(app)
             .delete("/api/tablenotes/1");
 
@@ -398,48 +513,48 @@ describe("TableNoteRoutes", () => {
     });
 
 
-      it("PUT /tablenotes/pin should return 200 and message", async () => {
+    it("PUT /tablenotes/pin should return 200 and message", async () => {
         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ id: "1", isPinned: false });
-    
+            .put("/api/tablenotes/pin")
+            .send({ id: "1", isPinned: false });
+
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Pin TableNote success!");
-      });
-    
-      it("PUT /tablenotes/pin with not exists note should return 404 and message", async () => {
-         mockExecute.mockResolvedValueOnce({ affected: 0 }); 
-         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ id: "999-999", isPinned: false });
-    
+    });
+
+    it("PUT /tablenotes/pin with not exists note should return 404 and message", async () => {
+        mockExecute.mockResolvedValueOnce({ affected: 0 });
+        const response = await request(app)
+            .put("/api/tablenotes/pin")
+            .send({ id: "999-999", isPinned: false });
+
         expect(response.status).toBe(404);
         expect(response.body.error).toBe("Can't find TableNote");
-      });
-    
-        it("PUT /tablenotes/pin with no id should return 400 and message", async () => {
-         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ isPinned: false });
-    
+    });
+
+    it("PUT /tablenotes/pin with no id should return 400 and message", async () => {
+        const response = await request(app)
+            .put("/api/tablenotes/pin")
+            .send({ isPinned: false });
+
         expect(response.status).toBe(400);
         expect(response.body.error).toBe("Must set id and pin status");
-      });
-    
-       it("PUT /tablenotes/pin and error occured should return 500 and message", async () => {
+    });
+
+    it("PUT /tablenotes/pin and error occured should return 500 and message", async () => {
         mockExecute.mockRejectedValueOnce(new Error("DB update error"));
-         const response = await request(app)
-          .put("/api/tablenotes/pin")
-          .send({ id: "1", isPinned: false });
-    
+        const response = await request(app)
+            .put("/api/tablenotes/pin")
+            .send({ id: "1", isPinned: false });
+
         expect(response.status).toBe(500);
         expect(response.body.error).toBe("Failed to pin TableNote");
-      });
+    });
 
     /************ TrashNote ************/
 
     it("GET /tablenotes/trash should return 200 and trash tablenotes", async () => {
-        mockRepoTableNote.find.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.find.mockResolvedValueOnce(mockDeletedTableNotes);
         const response = await request(app)
             .get("/api/tablenotes/trash");
 
@@ -468,7 +583,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("DELETE /tablenotes/trash should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(mockDeletedTableNotes[0]);
 
         const response = await request(app)
             .delete("/api/tablenotes/trash/3");
@@ -478,9 +593,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("DELETE /tablenotes/trash with NOT exists id should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }:{id:string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -504,7 +619,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/trash should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(mockDeletedTableNotes[0]);
 
         const response = await request(app)
             .put("/api/tablenotes/trash/3")
@@ -518,9 +633,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/trash with NOT exists id should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }: {id: string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -544,7 +659,7 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/lock should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedTableNotes));
+        mockRepoTableNote.findOneBy.mockResolvedValueOnce(mockDeletedTableNotes[0]);
 
         const response = await request(app)
             .put("/api/tablenotes/lock")
@@ -561,9 +676,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/lock with NOT exists id should return 200 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }:{id: string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -578,9 +693,9 @@ describe("TableNoteRoutes", () => {
     });
 
     it("PUT /tablenotes/lock with NO id should return 400 and message", async () => {
-        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }) => {
-            if (id === 3) {
-                return Promise.resolve(mockDeletedTableNotes);
+        mockRepoTableNote.findOneBy.mockImplementationOnce(({ id }:{id: string}) => {
+            if (id === "3") {
+                return Promise.resolve(mockDeletedTableNotes[0]);
             } else {
                 return Promise.resolve(null);
             }
@@ -618,19 +733,6 @@ describe("TableNoteRoutes", () => {
 
 
     afterAll(async () => {
-        if (hoardserver) {
-            await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
-            });
-        };
-
-        if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
-            try {
-                await AppDataSource.destroy();
-            } catch (error) {
-            }
-        };
-
         jest.clearAllTimers();
     });
 })

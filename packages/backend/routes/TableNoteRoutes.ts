@@ -1,12 +1,24 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.js';
-import TableNoteCell from '../entities/TableNoteCell.js';
-import TableNoteColumn from '../entities/TableNoteColumn.js';
-import TableNote from '../entities/TableNote.js';
-import { authMiddleware } from '../middleware/AuthMiddleware.js';
+import { AppDataSource } from '../DataSource.ts';
+import TableNoteCell from '../entities/TableNoteCell.ts';
+import TableNoteColumn from '../entities/TableNoteColumn.ts';
+import TableNote from '../entities/TableNote.ts';
+import { authMiddleware } from '../middleware/AuthMiddleware.ts';
 import { EntityManager } from 'typeorm';
+import NotePassword from '../entities/NotePassword.ts';
+import bcrypt from "bcrypt";
+import { Request, Response } from "express";
 
 const router = Router();
+
+type Query = {
+  password_id: string;
+  password_string: string;
+};
+
+type Params = {
+  id: string;
+};
 
 const generateRandomId = () => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -328,10 +340,10 @@ router.put('/', authMiddleware, async (req, res) => {
 });
 
 
-// 【UPDATE】TableNoteロック状態更新用API
+// 【UPDATE】TableNoteロック用API
 router.put('/lock', authMiddleware, async (req, res) => {
-  const { id, isLocked } = req.body;
-  if (!id || isLocked === null || isLocked === undefined) {
+  const { id } = req.body;
+  if (!id) {
     return res.status(400).json({ error: "Must set tablenote id,isLocked" });
   }
   try {
@@ -340,10 +352,45 @@ router.put('/lock', authMiddleware, async (req, res) => {
     if (!tableNote) {
       return res.status(404).json({ error: "Can't find TableNote" });
     }
-    tableNote.is_locked = isLocked; // ロック状態を更新
+    tableNote.is_locked = true; // ロック状態を更新
     const updatedNote = await tableNoteRepository.save(tableNote);
     console.log('Note lock state updated: ', updatedNote.is_locked);
     res.status(200).json({ message: "Update lock state success!", tablenote: updatedNote });
+  } catch (error) {
+    console.error("Error updating lock state", error);
+    return res.status(500).json({ error: "Failed to update lock state" });
+  }
+});
+
+// 【UPDATE】TableNoteロック解除用API
+router.put('/unlock', authMiddleware, async (req, res) => {
+  const { tablenoteId, passwordId, passwordString } = req.body;
+  if (!tablenoteId || !passwordId || !passwordString || passwordString.trim() === "") {
+    return res.status(400).json({ error: "Must set tablenoteId, passwordid and passwordstring" });
+  }
+  try {
+    // パスワードの検証
+    const passwordRepository = AppDataSource.getRepository(NotePassword);
+    // passwordを取得する
+    const password = await passwordRepository.findOneBy({ password_id: passwordId });
+    if (password === null) {
+      return res.status(404).json({ error: "Password not found" });
+    }
+    const isMatch = await bcrypt.compare(passwordString, password.password_hashed);
+    console.log("パスワードの一致:", isMatch);
+    if (!isMatch) {
+      return res.status(400).json({ error: "password is incorrect" });
+    } else {
+      const tableNoteRepository = AppDataSource.getRepository(TableNote);
+      const tableNote = await tableNoteRepository.findOneBy({ id: tablenoteId });
+      if (!tableNote) {
+        return res.status(404).json({ error: "Can't find TableNote" });
+      }
+      tableNote.is_locked = false; // ロック状態を更新
+      const updatedNote = await tableNoteRepository.save(tableNote);
+      console.log('Note lock state updated: ', updatedNote.is_locked);
+      res.status(200).json({ message: "Update lock state success!", tablenote: updatedNote });
+    }
   } catch (error) {
     console.error("Error updating lock state", error);
     return res.status(500).json({ error: "Failed to update lock state" });
@@ -506,25 +553,27 @@ router.put('/trash/:id', authMiddleware, async (req, res) => {
 
 
 // 【SELECT】テーブルノート単体取得API
-router.get('/:id', authMiddleware, async (req, res) => {
+router.get('/:id', authMiddleware, async (req: Request<Params, {}, {}, Query>, res: Response) => {
   const { id } = req.params;
   if (!id) {
     return res.status(400).json({ error: "Must set id" });
   }
-
+  const { password_id, password_string } = req.query;
   try {
     const tableNoteRepository = AppDataSource.getRepository(TableNote);
-    const tableNote = await tableNoteRepository.findOne({ where: { id: id, is_deleted: false }, order: { updatedate: 'DESC' } });
+    const tableNote = await tableNoteRepository.findOneBy({ id: id });
 
     if (tableNote) {
       // 返却するテーブルノートの配列
-      let result: { tablenote: { id: string, title: string, label_id: string, is_locked: boolean, is_pinned: boolean, createdate: string, updatedate: string }; columns: { id: string, name: string, order: number, table_note_id: string }[] | null; rowCells: { id: string, rowIndex: number, value: string, columnId?: string, table_note_id: string }[][] | null } = {
+      let result: { tablenote: { id: string, title: string, label_id: string, is_locked: boolean, is_deleted: boolean, is_pinned: boolean, deletedate: string, createdate: string, updatedate: string }; columns: { id: string, name: string, order: number, table_note_id: string }[] | null; rowCells: { id: string, rowIndex: number, value: string, columnId?: string, table_note_id: string }[][] | null } = {
         tablenote: {
           id: tableNote.id,
           title: tableNote.title,
           label_id: tableNote.label_id,
           is_locked: tableNote.is_locked,
+          is_deleted: tableNote.is_deleted,
           is_pinned: tableNote.is_pinned,
+          deletedate: tableNote.deletedate ? tableNote.deletedate.toISOString() : null,
           createdate: tableNote.createdate.toISOString(),
           updatedate: tableNote.updatedate.toISOString()
         },
@@ -535,7 +584,9 @@ router.get('/:id', authMiddleware, async (req, res) => {
       result.tablenote.title = tableNote.title;
       result.tablenote.label_id = tableNote.label_id;
       result.tablenote.is_locked = tableNote.is_locked;
+      result.tablenote.is_deleted = tableNote.is_deleted;
       result.tablenote.is_pinned = tableNote.is_pinned;
+      result.tablenote.deletedate = tableNote.deletedate ? tableNote.deletedate.toISOString() : null;
       result.tablenote.createdate = tableNote.createdate.toISOString();
       result.tablenote.updatedate = tableNote.updatedate.toISOString();
 
@@ -560,15 +611,36 @@ router.get('/:id', authMiddleware, async (req, res) => {
         });
       });
 
-      result.columns = tableNote.is_locked ? null : columns.map(col => ({ id: col.id, name: col.name, order: col.order, table_note_id: col.table_note_id })),
-        result.rowCells = tableNote.is_locked ? null : groupedRowCells
+      if (tableNote.is_locked) {
+        // ロックされている場合はパスワードを検証して正しければ内容を返す
+        const passwordRepository = AppDataSource.getRepository(NotePassword);
+        const password = await passwordRepository.findOneBy({ password_id: password_id });
+        if (!password) {
+          result.columns = null;
+          result.rowCells = null;
+        } else {
+          // パスワードの検証
+          const isMatch = await bcrypt.compare(password_string, password.password_hashed);
+          console.log("パスワードの一致:", isMatch);
+          if (isMatch) {
+            result.columns = columns.map(col => ({ id: col.id, name: col.name, order: col.order, table_note_id: col.table_note_id })),
+            result.rowCells = groupedRowCells
+          } else {
+            result.columns = null;
+            result.rowCells = null;
+          }
+        }
+      } else {
+        result.columns = columns.map(col => ({ id: col.id, name: col.name, order: col.order, table_note_id: col.table_note_id })),
+        result.rowCells = groupedRowCells
+      }
       return res.status(200).json(result);
     } else {
-      return res.status(200).json([]);
+      return res.status(404).json({ error: "tablenote not found" });
     }
   } catch (error) {
     console.error("Error fetching TableNote:", error);
-    return res.status(500).json({ error: 'Failed to fetch TableNote' });
+    return res.status(500).json({ error: 'Failed to get TableNote' });
   }
 });
 

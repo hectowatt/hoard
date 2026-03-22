@@ -206,6 +206,15 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
                     }),
                 },
             },
+            MuiFab: {
+                styleOverrides: {
+                    root: ({ theme }) => ({
+                        "&:hover": {
+                            backgroundColor: "#e9a33b",
+                        }
+                    })
+                }
+            }
         },
         transitions: {
             create: (props, options) => themeForMediaQuery.transitions.create(props, options),

@@ -99,48 +99,24 @@ export default function Home() {
         showSnackbar(t("message_current_notepassword_must_be_set"), "warning");
         return;
       }
-
-      const responseCompare = await fetch("/api/password/compare", {
-        method: "POST",
+      const response = await fetch("/api/password", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
           password_id: notePasswordId,
-          passwordString: prevNotePasswordString
+          passwordString: notePasswordString
         }),
         credentials: "include"
       });
 
-      if (responseCompare.ok) {
-        const result = await responseCompare.json();
-        const isMatch = result.isMatch;
-        if (isMatch) {
-          const response = await fetch("/api/password", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              password_id: notePasswordId,
-              passwordString: notePasswordString
-            }),
-            credentials: "include"
-          });
-
-          if (response.ok) {
-            showSnackbar(t("message_notepassword_saved"), "success");
-            setNotePasswordString(""); // 入力フィールドをクリア
-            setPrevNotePasswordString("");
-          } else {
-            showSnackbar(t("message_failed_to_save_notepassword"), "error");
-          }
-        } else {
-          showSnackbar(t("message_incorrect_current_notepassword"), "warning");
-        }
+      if (response.ok) {
+        showSnackbar(t("message_notepassword_saved"), "success");
+        setNotePasswordString(""); // 入力フィールドをクリア
+        setPrevNotePasswordString("");
       } else {
-        showSnackbar(t("message_error_occured"), "error");
-        return;
+        showSnackbar(t("message_failed_to_save_notepassword"), "error");
       }
     } else {
       // パスワードが未登録の場合は新規登録
@@ -179,67 +155,27 @@ export default function Home() {
       showSnackbar(t("message_new_password_must_be_set_when_change"), "warning");
       return;
     }
+    const response = await fetch("/api/user", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        username: newUsernameString,
+        oldpassword: prevPasswordString,
+        newpassword: newPasswordString
+      }),
+      credentials: "include"
+    });
 
-    if (newPasswordString) {
-      const responseCompare = await fetch("/api/user/compare", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          passwordString: prevPasswordString
-        }),
-        credentials: "include"
-      });
+    if (response.ok) {
+      showSnackbar(t("message_user_info_saved"), "success");
+      setNewUsernameString("");
+      setPrevPasswordString("");
+      setNewPasswordString("");
 
-      if (responseCompare.ok) {
-        const result = await responseCompare.json();
-        const isMatch = result.isMatch;
-        if (isMatch) {
-
-          const response = await fetch("/api/user", {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              username: newUsernameString,
-              password: newPasswordString
-            }),
-            credentials: "include"
-          });
-          if (response.ok) {
-            showSnackbar(t("message_user_settings_saved"), "success");
-            setNewUsernameString("");
-            setPrevPasswordString("");
-            setNewPasswordString("");
-          } else {
-            showSnackbar(t("message_failed_to_save_user_info"), "error");
-          }
-        } else {
-          showSnackbar(t("message_incorrect_current_password"), "warning");
-        }
-      }
     } else {
-      const response = await fetch("/api/user", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          username: newUsernameString,
-          password: newPasswordString
-        }),
-        credentials: "include"
-      });
-      if (response.ok) {
-        showSnackbar(t("message_user_info_saved"), "success");
-        setNewUsernameString("");
-        setPrevPasswordString("");
-        setNewPasswordString("");
-      } else {
-        showSnackbar(t("message_failed_to_save_user_info"), "error");
-      }
+      showSnackbar(t("message_failed_to_save_user_info"), "error");
     }
   }
 

@@ -15,8 +15,8 @@ export default {
   },
 
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/dist/$1",
-    "^../../DataSource.js$": "<rootDir>/dist/DataSource.js",
+    "^@/(.*)$": "<rootDir>/$1",
+    "^../../DataSource$": "<rootDir>/DataSource.ts",
   },
   roots: ["<rootDir>/test"],
 };

@@ -3,7 +3,7 @@
 import InputForm from "./components/InputForm";
 import Note from "@/app/(authenticated)/components/Note";
 import React, { use, useEffect, useState } from "react";
-import { Box, Container, Grid, Typography } from "@mui/material";
+import { Box, Container, Fab, Grid, styled, Typography } from "@mui/material";
 import { useLabelContext } from "@/app/(authenticated)/context/LabelProvider";
 import { useNoteContext } from "@/app/(authenticated)/context/NoteProvider";
 import { useTableNoteContext } from "@/app/(authenticated)/context/TableNoteProvider";
@@ -14,6 +14,9 @@ import { redirect } from "next/navigation";
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { useTranslation } from "react-i18next";
 import { useAuthContext, verifyAndRefreshTokens } from "../context/AuthProvider";
+import { useScreenSizeContext } from "./context/ScreenSizeProvider";
+import AddIcon from '@mui/icons-material/Add';
+import InputFormSmallScreen from "./components/InputFormSmallScreen";
 
 type Column = {
   id: number;
@@ -37,6 +40,8 @@ export default function Home() {
   const { searchWord } = useSearchWordContext();
   const { searchLabel } = useSearchLabelContext();
   const { isInitializing } = useAuthContext();
+  const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
+  const [isInputFormSmallScreenOpen, setIsInputFormSmallScreenOpen] = React.useState(false);
   const { t } = useTranslation();
 
   // label_idに紐づくlabelnameを取得する
@@ -223,42 +228,62 @@ export default function Home() {
     fetchTableNotes();
   }
 
+  const StyledFab = styled(Fab)({
+    position: 'fixed',
+    zIndex: 100,
+    bottom: 'calc(80px + env(safe-area-inset-bottom))',  // 下からの距離（セーフエリア考慮）
+    right: 20,   // 右からの距離
+  });
+
+
   return (
-    <Container>
-      {(searchWord || searchLabel) && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <FilterAltOutlinedIcon />
-          <Typography variant="body2">
-            {t("label_filtered")}
-          </Typography>
-        </Box>
+    <>
+      <Container sx={{ position: "relative" }}>
+        {(searchWord || searchLabel) && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <FilterAltOutlinedIcon />
+            <Typography variant="body2">
+              {t("label_filtered")}
+            </Typography>
+          </Box>
+        )}
+        {/* クライアントがスマホサイズのときはInputFormを画面上部に表示しない */}
+        {isSmallScreen ? null :
+          <InputForm onInsert={handleInsert} onInsertTableNote={handleInsertTableNote} />
+        }
+        {/* ノートとテーブルノートをピン留めされたものを先頭に一覧表示 */}
+        <Grid container spacing={2}>
+
+          {pinnedNotes.map((note, index) => (
+            <Grid key={note.id}>
+              <Note {...note} onSave={handleSave} onDelete={handleDelete} onPin={handlePinNote} data-testid="note" />
+            </Grid>
+          ))}
+          {pinnedTableNotes.map((tableNote, index) => (
+            <Grid key={tableNote.id}>
+              <TableNote {...tableNote} onSave={handleSaveTableNote} onDelete={handleDeleteTableNote} onPin={handlePinTableNote} data-testid="tablenote" />
+            </Grid>
+          ))}
+          {unpinnedNotes.map((note, index) => (
+            <Grid key={note.id}>
+              <Note {...note} onSave={handleSave} onDelete={handleDelete} onPin={handlePinNote} data-testid="note" />
+            </Grid>
+          ))}
+          {unpinnedTableNotes.map((tableNote, index) => (
+            <Grid key={tableNote.id}>
+              <TableNote {...tableNote} onSave={handleSaveTableNote} onDelete={handleDeleteTableNote} onPin={handlePinTableNote} data-testid="tablenote" />
+            </Grid>
+          ))}
+
+        </Grid>
+      </Container>
+      {/* クライアントがスマホサイズのときは右下にノート新規作成ボタンを表示する */}
+      {isSmallScreen && (
+        <StyledFab color="primary" aria-label="add" onClick={() => setIsInputFormSmallScreenOpen(true)} data-testid="open_input_form_button">
+          <AddIcon />
+        </StyledFab>
       )}
-      <InputForm onInsert={handleInsert} onInsertTableNote={handleInsertTableNote} />
-      {/* ノートとテーブルノートをピン留めされたものを先頭に一覧表示 */}
-      <Grid container spacing={2}>
-
-        {pinnedNotes.map((note, index) => (
-          <Grid key={note.id}>
-            <Note {...note} onSave={handleSave} onDelete={handleDelete} onPin={handlePinNote} data-testid="note" />
-          </Grid>
-        ))}
-        {pinnedTableNotes.map((tableNote, index) => (
-          <Grid key={tableNote.id}>
-            <TableNote {...tableNote} onSave={handleSaveTableNote} onDelete={handleDeleteTableNote} onPin={handlePinTableNote} data-testid="tablenote" />
-          </Grid>
-        ))}
-        {unpinnedNotes.map((note, index) => (
-          <Grid key={note.id}>
-            <Note {...note} onSave={handleSave} onDelete={handleDelete} onPin={handlePinNote} data-testid="note" />
-          </Grid>
-        ))}
-        {unpinnedTableNotes.map((tableNote, index) => (
-          <Grid key={tableNote.id}>
-            <TableNote {...tableNote} onSave={handleSaveTableNote} onDelete={handleDeleteTableNote} onPin={handlePinTableNote} data-testid="tablenote" />
-          </Grid>
-        ))}
-
-      </Grid>
-    </Container>
+      <InputFormSmallScreen open={isInputFormSmallScreenOpen} onClose={() => setIsInputFormSmallScreenOpen(false)} onInsert={handleInsert} onInsertTableNote={handleInsertTableNote} />
+    </>
   );
 }

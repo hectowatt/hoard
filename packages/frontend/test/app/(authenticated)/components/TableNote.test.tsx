@@ -349,7 +349,7 @@ describe("TableNote", () => {
         });
     });
 
-    it("ロックボタンをクリックするとロックされる", async () => {
+    it("ロックボタンをクリックするとロックされて表示が変わる", async () => {
         const lockedText = i18n.t("label_lockednote");
         render(
             <LocaleProvider>
@@ -389,6 +389,8 @@ describe("TableNote", () => {
             const texts = screen.getAllByText(lockedText);
             expect(texts.length).toBeGreaterThan(0);
             expect(texts[0]).toBeVisible();
+            const invisibleIcon = screen.getByTestId("invisible");
+            expect(invisibleIcon).toBeVisible();
         });
     });
 
@@ -411,6 +413,48 @@ describe("TableNote", () => {
         );
 
         expect(screen.getByText(lockedText)).toBeVisible();
+    });
+
+    it("ロックされているノートの閲覧ボタンをクリックするとパスワード入力ダイアログが表示される", async () => {
+        const lockedText = i18n.t("label_lockednote");
+        render(
+            <LocaleProvider>
+                <AuthProvider>
+                    <ScreenSizeProvider>
+                        <SnackbarProvider>
+                            <NoteProvider>
+                                <LabelProvider>
+                                    <TableNote id={"testid111"} title={"テストノートタイトル"} label_id={""} createdate="2025-07-05 05:33:05.864" updatedate="2025-07-06 05:33:05.864" is_locked={true} is_pinned={false} columns={mockColumns} rowCells={mockRowCells} onSave={mockOnSave} onDelete={mockOnDelete} onPin={mockOnPin} />
+                                </LabelProvider>
+                            </NoteProvider>
+                        </SnackbarProvider>
+                    </ScreenSizeProvider >
+                </AuthProvider>
+            </LocaleProvider >
+        );
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("テストノートタイトル"));
+        });
+
+        const invisibleIcon = screen.getByTestId("invisible");
+
+        global.fetch = jest.fn().mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ password_id: "dummy" }),
+        }).mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({}),
+        });
+
+        await act(async () => {
+            fireEvent.click(invisibleIcon);
+        });
+
+        await waitFor(() => {
+            const passwordDialog = screen.getByTestId("password_dialog");
+            expect(passwordDialog).toBeVisible();
+        });
     });
 
 });

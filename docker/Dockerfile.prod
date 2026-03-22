@@ -1,0 +1,25 @@
+# ベースイメージとしてNode.jsを使用
+FROM node:22.14.0
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# 依存関係ファイルをコピー
+COPY package*.json ./
+COPY ./packages/backend/package*.json ./packages/backend/
+COPY ./packages/frontend/package*.json ./packages/frontend/
+
+# 依存関係のインストール
+RUN npm install
+
+# ソースコードをコピー
+COPY . .
+
+# ビルド
+RUN npm run build
+
+# ポート開放
+EXPOSE 8120
+
+# サーバ起動
+CMD ["node", "start.js", "prod"]

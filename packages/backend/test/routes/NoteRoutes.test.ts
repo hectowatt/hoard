@@ -1,17 +1,15 @@
 import request from "supertest";
-import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../dist/DataSource.js";
-import { idText, server } from "typescript";
+import { AppDataSource } from "../../DataSource.ts";
 
-import Label from "../../dist/entities/Label.js";
-import Note from "../../dist/entities/Note.js";
-import { authMiddleware } from "../../middleware/AuthMiddleware.js";
+import Label from "../../entities/Label.ts";
+import Note from "../../entities/Note.ts";
+import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
   Redis: jest.fn().mockImplementation(() => ({
     set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
     get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
@@ -24,6 +22,24 @@ const mockWhere = jest.fn(() => ({ andWhere: mockAndWhere }));
 const mockFrom = jest.fn(() => ({ where: mockWhere }));
 const mockDelete = jest.fn(() => ({ from: mockFrom }));
 
+// bcrypt のモックを変数化
+const mockBcrypt = {
+  compare: jest.fn().mockImplementation((password, hashed) => {
+    if (password !== null && password === hashed) {
+      return Promise.resolve(true);
+    } else {
+      return Promise.resolve(false);
+    }
+  }),
+  hash: jest.fn().mockImplementation((password, saltRounds) => {
+    return Promise.resolve("hashed_" + password);
+  }),
+};
+
+jest.unstable_mockModule("bcrypt", () => ({
+  default: mockBcrypt,
+}));
+
 // ラベルのモック
 const mockLabels = [
   { id: "1", labelname: "work", createdate: new Date(), notes: [] },
@@ -31,7 +47,7 @@ const mockLabels = [
 ]
 
 // ノートのモック
-const mockNotes = [
+const mockNotes: Note[] = [
   { id: "1", title: "test title1", content: "test content1", label_id: "1", label: mockLabels[0], is_deleted: false, is_pinned: false, deletedate: null, is_locked: false, createdate: new Date(), updatedate: new Date() },
   { id: "2", title: "test title2", content: "test content2", label_id: "2", label: mockLabels[1], is_deleted: false, is_pinned: false, deletedate: null, is_locked: true, createdate: new Date(), updatedate: new Date() }
 ]
@@ -42,14 +58,13 @@ const mockDeletedNotes = [
 ]
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
   authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
     next();
   }),
 }));
 
-// DataSource をモック
-const mockRepo = {
+const mockRepoNote = {
   find: jest.fn(() => Promise.resolve(mockNotes)),
   findOneBy: jest.fn(({ id }) => {
     if (id === mockNotes[0].id) {
@@ -83,20 +98,108 @@ const mockRepo = {
   }))
 };
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+const mockRepoNotePassword = {
+  findOneBy: jest.fn(({ id }) => Promise.resolve({
+    id:"hashed_password",
+    password_hashed: "hashed_password"
+  })),
+}
+
+const mockGetRepository = jest.fn((entity: { name: string }) => {
+  console.log('getRepository called with:', entity?.name);
+  // コンストラクタ名や静的プロパティで判定
+  const entityName = entity.name;
+  if (entityName === 'Note') return mockRepoNote;
+  if (entityName === 'NotePassword') return mockRepoNotePassword;
+  // デフォルトのフォールバック
+  return {};
+});
+
+jest.unstable_mockModule("../../DataSource.ts", () => ({
   AppDataSource: {
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
-    getRepository: jest.fn().mockImplementation(() => mockRepo),
+    getRepository: mockGetRepository,
   },
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, initializeServer } = await import("../../server.ts");
 
 describe("NoteRoutes", () => {
-
+   beforeAll(async () => {
+        await initializeServer();
+    });
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRepoNote.findOneBy.mockImplementation(({ id }) => {
+      if (id === mockNotes[0].id) {
+        return Promise.resolve(mockNotes[0]);
+      } else if (id === mockNotes[1].id) {
+        return Promise.resolve(mockNotes[1]);
+      }
+      return Promise.resolve(null);
+    });
+  });
+
+  it("GET /notes/:1 should return 200 and message", async () => {
+    const response = await request(app)
+      .get("/api/notes/1");
+
+    expect(response.status).toBe(200);
+    expect(response.body.id).toBe("1");
+    expect(response.body.title).toBe("test title1");
+    expect(response.body.content).toBe("test content1");
+    expect(response.body.label_id).toBe("1");
+    expect(response.body.is_deleted).toBe(false);
+    expect(response.body.deletedate).toBe(null);
+    expect(response.body.is_locked).toBe(false);
+    expect(response.body.is_pinned).toBe(false);
+    expect(response.body.label.id).toBe("1");
+  });
+
+  it("GET /notes/:1 and error occured should return 500 and message", async () => {
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
+    const response = await request(app)
+      .get("/api/notes/1");
+
+    expect(response.status).toBe(500);
+    expect(response.body.error).toBe("Failed to get note");
+  });
+
+  it("GET /notes/:3 should return 404 and message", async () => {
+    const response = await request(app)
+      .get("/api/notes/3");
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe("Note not found");
+  });
+
+  it("GET /notes/:2?password_id=1&password_string=hashed_password should return 200 and message", async () => {
+    const response = await request(app)
+      .get("/api/notes/2")
+      .query({
+        password_id: "1",
+        password_string: "hashed_password",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.id).toBe("2");
+    expect(response.body.title).toBe("test title2");
+    expect(response.body.content).toBe("test content2");
+  });
+
+    it("GET /notes/:2?password_id=1&password_string=wrong_password should return 200 without content", async () => {
+    const response = await request(app)
+      .get("/api/notes/2")
+      .query({
+        password_id: "1",
+        password_string: "wrong_password",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.id).toBe("2");
+    expect(response.body.title).toBe("test title2");
+    expect(response.body.content).toBe("");
   });
 
   it("GET /notes should return 200 and all notes", async () => {
@@ -125,7 +228,7 @@ describe("NoteRoutes", () => {
   });
 
   it("GET /notes and Error occured should return 500 and error message", async () => {
-    mockRepo.find.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.find.mockRejectedValueOnce(new Error("DB find error"));
 
     const response = await request(app).get("/api/notes");
 
@@ -154,7 +257,7 @@ describe("NoteRoutes", () => {
   });
 
   it("POST /notes and Error occured should return 500 and message", async () => {
-    mockRepo.save.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+    mockRepoNote.save.mockRejectedValueOnce(new Error("DB save error"));
 
     const response = await request(app)
       .post("/api/notes")
@@ -199,7 +302,7 @@ describe("NoteRoutes", () => {
     expect(response.body.error).toBe("Can't find note");
   });
 
-    it("PUT /notes without id should return 400 and message", async () => {
+  it("PUT /notes without id should return 400 and message", async () => {
     const response = await request(app)
       .put("/api/notes")
       .send({ title: "updated title", content: "updated content", label: "2", isLocked: true, isPinned: false });
@@ -209,7 +312,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes and Error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
 
     const response = await request(app)
       .put("/api/notes")
@@ -236,7 +339,7 @@ describe("NoteRoutes", () => {
   });
 
   it("DELETE /notes and Error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB findOneBy error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB findOneBy error"));
 
     const response = await request(app)
       .delete("/api/notes/1");
@@ -255,8 +358,8 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/pin with not exists note should return 404 and message", async () => {
-     mockExecute.mockResolvedValueOnce({ affected: 0 }); 
-     const response = await request(app)
+    mockExecute.mockResolvedValueOnce({ affected: 0 });
+    const response = await request(app)
       .put("/api/notes/pin")
       .send({ id: "999-999", isPinned: false });
 
@@ -264,8 +367,8 @@ describe("NoteRoutes", () => {
     expect(response.body.error).toBe("Can't find Note");
   });
 
-    it("PUT /notes/pin with no id should return 400 and message", async () => {
-     const response = await request(app)
+  it("PUT /notes/pin with no id should return 400 and message", async () => {
+    const response = await request(app)
       .put("/api/notes/pin")
       .send({ isPinned: false });
 
@@ -273,9 +376,9 @@ describe("NoteRoutes", () => {
     expect(response.body.error).toBe("Must set id and pin status");
   });
 
-   it("PUT /notes/pin and error occured should return 500 and message", async () => {
+  it("PUT /notes/pin and error occured should return 500 and message", async () => {
     mockExecute.mockRejectedValueOnce(new Error("DB update error"));
-     const response = await request(app)
+    const response = await request(app)
       .put("/api/notes/pin")
       .send({ id: "1", isPinned: false });
 
@@ -286,7 +389,7 @@ describe("NoteRoutes", () => {
   /************ TrashNote ************/
 
   it("GET /notes/trash should return deleted notes", async () => {
-    mockRepo.find.mockImplementationOnce(() => Promise.resolve(mockDeletedNotes));
+    mockRepoNote.find.mockResolvedValueOnce([mockDeletedNotes[0]]);
     const response = await request(app)
       .get("/api/notes/trash");
 
@@ -304,7 +407,7 @@ describe("NoteRoutes", () => {
   });
 
   it("GET /notes/trash and error occured should return 500 and message", async () => {
-    mockRepo.find.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.find.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .get("/api/notes/trash");
 
@@ -313,7 +416,7 @@ describe("NoteRoutes", () => {
   });
 
   it("DELETE /notes/trash:2 should return 200 and message", async () => {
-    mockRepo.remove.mockImplementationOnce(() => Promise.resolve());
+    mockRepoNote.remove.mockResolvedValueOnce(mockDeletedNotes[0]);
     const response = await request(app)
       .delete("/api/notes/trash/2");
 
@@ -330,7 +433,7 @@ describe("NoteRoutes", () => {
   });
 
   it("DELETE /notes/trash:2 and error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .delete("/api/notes/trash/2");
 
@@ -339,7 +442,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/trash should return 200 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.resolve(mockDeletedNotes[0]));
+    mockRepoNote.findOneBy.mockResolvedValueOnce(mockDeletedNotes[0]);
     const response = await request(app)
       .put("/api/notes/trash/3");
 
@@ -359,7 +462,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/trash and error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .put("/api/notes/trash/3");
 
@@ -378,10 +481,10 @@ describe("NoteRoutes", () => {
     expect(response.body.note.is_locked).toBe(true);
   });
 
-    it("PUT /notes/lock without id should return 200 and message", async () => {
+  it("PUT /notes/lock without id should return 200 and message", async () => {
     const response = await request(app)
       .put("/api/notes/lock")
-      .send({  isLocked: true });
+      .send({ isLocked: true });
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("Must set id or isLocked");
@@ -397,7 +500,7 @@ describe("NoteRoutes", () => {
   });
 
   it("PUT /notes/lock and error occured should return 500 and message", async () => {
-    mockRepo.findOneBy.mockImplementationOnce(() => Promise.reject(new Error("DB find error")));
+    mockRepoNote.findOneBy.mockRejectedValueOnce(new Error("DB find error"));
     const response = await request(app)
       .put("/api/notes/lock")
       .send({ id: "1", isLocked: true });
@@ -429,12 +532,6 @@ describe("NoteRoutes", () => {
 
 
   afterAll(async () => {
-    if (hoardserver) {
-      await new Promise<void>((resolve, reject) => {
-        hoardserver.close((err) => (err ? reject(err) : resolve()));
-      });
-    };
-
     if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
       try {
         await AppDataSource.destroy();

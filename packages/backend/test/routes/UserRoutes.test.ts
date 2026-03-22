@@ -2,16 +2,14 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../dist/DataSource.js";
-import { idText, server } from "typescript";
+import { AppDataSource } from "../../DataSource.ts";
 
-import type HoardUser from "../../dist/entities/HoardUser.js";
-import { authMiddleware } from "../../middleware/AuthMiddleware.js";
+import type HoardUser from "../../entities/HoardUser.ts";
+import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
 import type { Request, Response, NextFunction } from "express";
-import { before } from "node:test";
 
 // Redis をモック
-jest.unstable_mockModule("ioredis", () => ({
+await jest.unstable_mockModule("ioredis", () => ({
     Redis: jest.fn().mockImplementation(() => ({
         set: jest.fn().mockImplementation(() => Promise.resolve("OK")),
         get: jest.fn().mockImplementation(() => Promise.resolve("valid")),
@@ -19,7 +17,7 @@ jest.unstable_mockModule("ioredis", () => ({
 }));
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../dist/middleware/AuthMiddleware', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
     authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
         next();
     }),
@@ -59,7 +57,7 @@ const mockRepo = {
     remove: jest.fn((user: HoardUser) => Promise.resolve(user)),
 };
 
-jest.unstable_mockModule("../../dist/DataSource.js", () => ({
+jest.unstable_mockModule("../../DataSource.ts", () => ({
     AppDataSource: {
         initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
         getRepository: jest.fn().mockImplementation(() => mockRepo),
@@ -67,9 +65,12 @@ jest.unstable_mockModule("../../dist/DataSource.js", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../dist/server.js");
+const { app, initializeServer } = await import("../../server.ts");
 
 describe("HoardUserRoutes", () => {
+    beforeAll(async () => {
+        await initializeServer();
+    });
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -109,7 +110,7 @@ describe("HoardUserRoutes", () => {
     });
 
     it("POST /user and error occured should return 500 and message", async () => {
-        mockRepo.save.mockImplementationOnce(() => Promise.reject(new Error("DB save error")));
+        mockRepo.save.mockRejectedValueOnce(new Error("DB save error"));
 
         const response = await request(app)
             .post("/api/user")
@@ -140,12 +141,6 @@ describe("HoardUserRoutes", () => {
     });
 
     afterAll(async () => {
-        if (hoardserver) {
-            await new Promise<void>((resolve, reject) => {
-                hoardserver.close((err) => (err ? reject(err) : resolve()));
-            });
-        };
-
         if (AppDataSource.destroy && typeof AppDataSource.destroy === "function") {
             try {
                 await AppDataSource.destroy();

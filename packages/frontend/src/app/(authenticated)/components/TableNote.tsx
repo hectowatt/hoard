@@ -25,6 +25,8 @@ import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import { useScreenSizeContext } from "../context/ScreenSizeProvider";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
 interface Column {
     id: number;
@@ -81,6 +83,8 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
     const [editRowCells, setEditRowCells] = useState<RowCell[][]>(rowCells);
     const [isPinned, setIsPinned] = React.useState(false);
     const { isSmallScreen, setIsSmallScreen } = useScreenSizeContext();
+    const [isVisible, setIsVisible] = React.useState(true);
+    const [isCallByVisible, setIsCallByVisible] = React.useState(false); // 閲覧ボタンからパスワード入力を呼び出したかのフラグ
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
     const router = useRouter();
@@ -176,6 +180,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
     // 画面描画時にノートロック状態を設定
     useEffect(() => {
         setIsLocked(is_locked);
+        setIsVisible(!is_locked); // ノートがロックされているときは内容を非表示にする
     }, [is_locked]);
 
     // 画面描画時にノートピン状態を設定
@@ -257,8 +262,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 "Content-Type": "application/json",
                             },
                             body: JSON.stringify({
-                                id: id,
-                                isLocked: true, // ロック状態にする
+                                id: id
                             }),
                             credentials: "include"
                         });
@@ -275,6 +279,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                         // ロックしたら内容は非表示にする
                         setEditColumns([]);
                         setEditRowCells([]);
+                        setIsVisible(false);
                     } else {
                         // パスワードが未登録の場合はロックできない
                         showSnackbar(t("message_cannot_lock_note_without_notepassword"), "warning");
@@ -297,85 +302,91 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
             return;
         }
 
-        // 入力されたパスワードをもとに比較APIを呼び出す
-        const responseCompare = await fetch("/api/password/compare", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                password_id: passwordId,
-                passwordString: inputPassword
-            }),
-            credentials: "include"
-        });
-
-        if (responseCompare.ok) {
-            const result = await responseCompare.json();
-            const isMatch = result.isMatch;
-            if (isMatch) {
-                try {
-                    // パスワードが一致した場合、ロックを解除するAPIを呼び出す
-                    const responseUnlock = await fetch("/api/tablenotes/lock", {
-                        method: "PUT",
+        try {
+            if (!isCallByVisible) {
+                // ロックボタンを押下した場合はロックを解除するAPIを呼び出す
+                const responseUnlock = await fetch("/api/tablenotes/unlock", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        tablenoteId: id,
+                        passwordId: passwordId,
+                        passwordString: inputPassword
+                    }),
+                    credentials: "include"
+                });
+                if (!responseUnlock.ok) {
+                    if (responseUnlock.status === 401) {
+                        showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                        router.push("/login");
+                    } else {
+                        showSnackbar(t("message_error_occured"), "error");
+                        throw new Error("Failed to unlock note");
+                    }
+                } else {
+                    // ロック解除成功したらノートを再取得する
+                    const responseGet = await fetch(`/api/tablenotes/${id}`, {
+                        method: "GET",
                         headers: {
                             "Content-Type": "application/json",
                         },
-                        body: JSON.stringify({
-                            id: id,
-                            isLocked: false, // ロック解除
-                        }),
                         credentials: "include"
                     });
-                    if (!responseUnlock.ok) {
-                        if (responseUnlock.status === 401) {
+
+                    if (!responseGet.ok) {
+                        if (responseGet.status === 401) {
+                            console.error("Error get tablenote");
                             showSnackbar(t("message_error_occured_redirect_login"), "warning");
                             router.push("/login");
                         } else {
                             showSnackbar(t("message_error_occured"), "error");
-                            throw new Error("Failed to unlock note");
+                            throw new Error("Failed to get tablenote");
                         }
                     } else {
-                        // ロック解除成功したらノートを再取得する
-                        const responseGet = await fetch(`/api/tablenotes/${id}`, {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            credentials: "include"
-                        });
-
-                        if (!responseGet.ok) {
-                            if (responseGet.status === 401) {
-                                console.error("Error get tablenote");
-                                showSnackbar(t("message_error_occured_redirect_login"), "warning");
-                                router.push("/login");
-                            } else {
-                                showSnackbar(t("message_error_occured"), "error");
-                                throw new Error("Failed to get tablenote");
-                            }
-                        } else {
-                            const resultGet = await responseGet.json();
-                            setEditColumns(resultGet.columns || []);
-                            setEditRowCells(Array.isArray(resultGet.rowCells) ? resultGet.rowCells : []);
-                        }
+                        const resultGet = await responseGet.json();
+                        setEditColumns(resultGet.columns || []);
+                        setEditRowCells(Array.isArray(resultGet.rowCells) ? resultGet.rowCells : []);
+                        setIsLocked(false);
+                        setPasswordDialogOpen(false);
+                        setInputPassword(""); // 入力フィールドをクリア
                     }
-
-                    setIsLocked(false);
-                    setPasswordDialogOpen(false);
-                    setInputPassword(""); // 入力フィールドをクリア
-                } catch (error) {
-                    showSnackbar(t("message_error_occured"), "error");
-                    return;
                 }
             } else {
-                showSnackbar(t("message_incorrect_password"), "warning");
+                // 閲覧ボタンを押下した場合はノートの内容を表示するだけなのでロック解除APIは呼び出さずに内容を取得する
+                const responseGet = await fetch(`/api/tablenotes/${id}?password_id=${passwordId}&password_string=${inputPassword}`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include"
+                });
+                if (!responseGet.ok) {
+                    if (responseGet.status === 401) {
+                        console.error("Error get note");
+                        showSnackbar(t("message_error_occured_redirect_login"), "warning");
+                        router.push("/login");
+                    } else {
+                        showSnackbar(t("message_error_occured"), "error");
+                        throw new Error("Failed to get note");
+                    }
+                } else {
+                    const resultGet = await responseGet.json();
+                    setEditColumns(resultGet.columns || []);
+                    setEditRowCells(Array.isArray(resultGet.rowCells) ? resultGet.rowCells : []);
+                    setIsVisible(true);
+                    setPasswordDialogOpen(false);
+                    setIsCallByVisible(false); // フラグをリセット
+                    setInputPassword(""); // 入力フィールドをクリア
+                }
             }
-        } else {
+        } catch (error) {
             showSnackbar(t("message_error_occured"), "error");
             return;
         }
     }
+
 
     // テーブルノート保存処理
     const handleSaveTableNote = async () => {
@@ -482,6 +493,46 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
             }
         } catch (error) {
             showSnackbar(t("message_error_occured"), "error");
+        }
+    };
+
+    // 閲覧ボタン押下処理
+    const handleVisible = async () => {
+        if (isVisible) {
+            // 閲覧不可にする処理
+            setIsVisible(false);
+            // 内容は非表示にする
+            setEditColumns([]);
+            setEditRowCells([]);
+        } else {
+            // 閲覧可能にする処理
+            // パスワードが存在するかチェック
+            try {
+                const responseSelect = await fetch("/api/password", {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include"
+                });
+
+                if (responseSelect.ok) {
+                    const resultSelect = await responseSelect.json();
+                    if (resultSelect.password_id !== null && resultSelect.password_id !== "" && resultSelect.password_id !== undefined) {
+                        // すでにパスワードが登録されている場合はパスワード入力を求める
+                        setIsCallByVisible(true);
+                        setPasswordId(resultSelect.password_id);
+                        // パスワード入力ダイアログを開く
+                        setPasswordDialogOpen(true);
+                    }
+
+                } else {
+                    console.error("failed to fetch notepassword");
+                }
+            } catch (error) {
+                console.error("Error fetching password", error);
+                return;
+            }
         }
     };
 
@@ -607,7 +658,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                             </Table>
                             <Button onClick={handleAddRow} sx={{ m: 2 }}><AddIcon data-testid="addRowIcon" /></Button>
                         </TableContainer>
-                    ) : isLocked ? (
+                    ) : !isVisible ? (
                         <Typography variant="body1" sx={{ whiteSpace: "pre-line", mb: 2 }}>
                             {t("label_lockednote")}
                         </Typography>
@@ -723,22 +774,28 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                         ) : (
                             // パスワードロックされている場合
                             <>
-                                <Button onClick={handleDelete} variant="contained" sx={{ ml: 1 }}>{t("button_delete")}</Button>
+                                <Button onClick={handleDelete} variant="contained" sx={{ mr: 1 }}>{t("button_delete")}</Button>
+                                <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1 }} data-testid="button_close">{t("button_close")}</Button>
                                 <IconButton
                                     onClick={handleLock}
-                                    sx={{ ml: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
+                                    sx={{ mr: 1, color: isLocked ? "primary.main" : "action.disabled" }}>
                                     {isLocked ? <LockOutlinedIcon data-testid="lock" /> : <NoEncryptionGmailerrorredOutlinedIcon data-testid="unlock" />}
+                                </IconButton>
+                                <IconButton
+                                    onClick={handleVisible}
+                                    sx={{ mr: 1, color: isVisible ? "primary.main" : "action.disabled" }}>
+                                    {isVisible ? <VisibilityIcon data-testid="visible" /> : <VisibilityOffIcon data-testid="invisible" />}
                                 </IconButton>
                                 {isPinned ? (
                                     <IconButton
                                         onClick={handlePin}
-                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        sx={{ mr: 1, color: isPinned ? "text.primary" : "action.disabled" }}
                                         data-testid="icon_pinned">
                                         <PushPinIcon />
                                     </IconButton>) : (
                                     <IconButton
                                         onClick={handlePin}
-                                        sx={{ ml: 1, color: isPinned ? "text.primary" : "action.disabled" }}
+                                        sx={{ mr: 1, color: isPinned ? "text.primary" : "action.disabled" }}
                                         data-testid="icon_pin">
                                         <PushPinOutlinedIcon />
                                     </IconButton>
@@ -749,7 +806,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                 </DialogContent>
             </Dialog >
 
-            <Dialog open={passwordDialogOpen} onClose={() => setPasswordDialogOpen(false)}>
+            <Dialog open={passwordDialogOpen} onClose={() => setPasswordDialogOpen(false)} data-testid="password_dialog">
                 <DialogTitle>{t("label_input_password")}</DialogTitle>
                 <DialogContent>
                     <TextField
