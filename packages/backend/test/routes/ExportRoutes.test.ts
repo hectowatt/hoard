@@ -44,7 +44,7 @@ jest.unstable_mockModule("archiver", () => ({
 }));
 
 // AuthMiddlewareをモック
-jest.unstable_mockModule('../../middleware/AuthMiddleware.ts', () => ({
+jest.unstable_mockModule('../../middleware/AuthMiddleware', () => ({
   authMiddleware: jest.fn((req: Request, res: Response, next: NextFunction) => {
     next();
   }),
@@ -56,7 +56,7 @@ jest.unstable_mockModule("csv-stringify/sync", () => ({
 }));
 
 // DataSource モック
-jest.unstable_mockModule("../../DataSource.ts", () => ({
+jest.unstable_mockModule("../../DataSource", () => ({
     AppDataSource: {
         getRepository: mockGetRepository,
         destroy: jest.fn(() => Promise.resolve()),
@@ -76,7 +76,7 @@ describe("ExportRoutes", () => {
         app.use(express_app.json());
         
         // ExportRoutes をインポートして、ルーターをマウント
-        const { default: exportRouter } = await import("../../routes/ExportRoutes.ts");
+        const { default: exportRouter } = await import("../../routes/ExportRoutes");
         app.use('/api/export', exportRouter);
     });
 

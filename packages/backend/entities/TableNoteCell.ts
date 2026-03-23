@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
-import TableNoteColumn from "./TableNoteColumn.ts";
-import TableNote from "./TableNote.ts";
+import TableNoteColumn from "./TableNoteColumn";
+import TableNote from "./TableNote";
 
 @Entity({ name: "table_note_cell" })
 export default class TableNoteCell {

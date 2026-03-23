@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.ts';
-import NotePassword from '../entities/NotePassword.ts';
+import { AppDataSource } from '../DataSource';
+import NotePassword from '../entities/NotePassword';
 import bcrypt from "bcrypt";
-import { authMiddleware } from '../middleware/AuthMiddleware.ts';
+import { authMiddleware } from '../middleware/AuthMiddleware';
 
 const router = Router();
 

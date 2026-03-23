@@ -2,10 +2,10 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../DataSource.ts";
+import { AppDataSource } from "../../DataSource";
 
-import type NotePassword from "../../entities/NotePassword.ts";
-import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
+import type NotePassword from "../../entities/NotePassword";
+import { authMiddleware } from "../../middleware/AuthMiddleware";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
@@ -70,7 +70,7 @@ const mockRepo = {
     }),
 };
 
-jest.unstable_mockModule("../../DataSource.ts", () => ({
+jest.unstable_mockModule("../../DataSource", () => ({
     AppDataSource: {
         initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
         getRepository: jest.fn().mockImplementation(() => mockRepo),
@@ -78,7 +78,7 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, initializeServer } = await import("../../server.ts");
+const { app, initializeServer } = await import("../../server");
 
 describe("PasswordRoutes", () => {
     beforeAll(async () => {

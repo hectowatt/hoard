@@ -42,7 +42,7 @@ const mockGetRepository = jest.fn((entity: any) => {
   return {};
 });
 
-jest.unstable_mockModule('../DataSource.ts', () => ({
+jest.unstable_mockModule('../DataSource', () => ({
   AppDataSource: {
     getRepository: mockGetRepository,
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
@@ -51,8 +51,8 @@ jest.unstable_mockModule('../DataSource.ts', () => ({
 }));
 
 // モジュールをインポート
-const { app, deleteOldNotes, startServer,closeResources } = await import("../server.ts");
-const { AppDataSource } = await import("../DataSource.ts");
+const { app, deleteOldNotes, startServer,closeResources } = await import("../server");
+const { AppDataSource } = await import("../DataSource");
 
 describe('Server Tests', () => {
   let serverInstance: any;

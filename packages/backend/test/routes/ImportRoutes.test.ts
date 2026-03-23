@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import path from "path";
 import { jest } from "@jest/globals";
 import type { Request, Response, NextFunction } from "express";
-import { AppDataSource } from "../../DataSource.ts";
+import { AppDataSource } from "../../DataSource";
 
 // ===== DataSource モック =====
 const mockSave = jest.fn(() => {
@@ -32,7 +32,7 @@ jest.unstable_mockModule("../../DataSource", () => ({
 }));
 
 // ===== テスト対象 import =====
-const { app, hoardserver } = await import("../../server.ts");
+const { app, hoardserver } = await import("../../server");
 
 // ===== ヘルパー: ZIP作成 =====
 const createZipBuffer = () => {

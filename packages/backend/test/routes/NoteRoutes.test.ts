@@ -1,11 +1,11 @@
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../DataSource.ts";
+import { AppDataSource } from "../../DataSource";
 
-import Label from "../../entities/Label.ts";
-import Note from "../../entities/Note.ts";
-import { authMiddleware } from "../../middleware/AuthMiddleware.ts";
+import Label from "../../entities/Label";
+import Note from "../../entities/Note";
+import { authMiddleware } from "../../middleware/AuthMiddleware";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
@@ -115,7 +115,7 @@ const mockGetRepository = jest.fn((entity: { name: string }) => {
   return {};
 });
 
-jest.unstable_mockModule("../../DataSource.ts", () => ({
+jest.unstable_mockModule("../../DataSource", () => ({
   AppDataSource: {
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
     getRepository: mockGetRepository,
@@ -123,7 +123,7 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, initializeServer } = await import("../../server.ts");
+const { app, initializeServer } = await import("../../server");
 
 describe("NoteRoutes", () => {
    beforeAll(async () => {
