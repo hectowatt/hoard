@@ -3,7 +3,9 @@ import { Redis } from 'ioredis';
 import { redis } from '../server.js';
 
 const SECRET = process.env.SECRET || 'hoard_secret';
-const ALLOWED_ORIGIN = process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "http://localhost:8120";
+const ALLOWED_ORIGIN = process.env.NODE_ENV === 'production' 
+    ? `https://${process.env.DOMAIN}` 
+    : "http://localhost:8120";
 
 export const authMiddleware = async (req, res, next) => {
     const accessToken = req.cookies.accessToken;
