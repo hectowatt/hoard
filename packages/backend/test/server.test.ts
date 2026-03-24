@@ -30,8 +30,8 @@ const mockRepoTableNote = {
   delete: jest.fn((tableNote) => Promise.resolve(tableNote)),
 };
 
-const NoteModule = await import('../entities/Note');
-const TableNoteModule = await import('../entities/TableNote');
+const NoteModule = await import('../entities/Note.js');
+const TableNoteModule = await import('../entities/TableNote.js');
 const Note = NoteModule.default;
 const TableNote = TableNoteModule.default;
 
@@ -42,7 +42,7 @@ const mockGetRepository = jest.fn((entity: any) => {
   return {};
 });
 
-jest.unstable_mockModule('../DataSource.ts', () => ({
+jest.unstable_mockModule('../DataSource', () => ({
   AppDataSource: {
     getRepository: mockGetRepository,
     initialize: jest.fn().mockImplementation(() => Promise.resolve(true)),
@@ -51,8 +51,8 @@ jest.unstable_mockModule('../DataSource.ts', () => ({
 }));
 
 // モジュールをインポート
-const { app, deleteOldNotes, startServer,closeResources } = await import("../server.ts");
-const { AppDataSource } = await import("../DataSource.ts");
+const { app, deleteOldNotes, startServer,closeResources } = await import("../server.js");
+const { AppDataSource } = await import("../DataSource.js");
 
 describe('Server Tests', () => {
   let serverInstance: any;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource.ts';
-import Label from '../entities/Label.ts';
-import { authMiddleware } from '../middleware/AuthMiddleware.ts';
+import { AppDataSource } from '../DataSource.js';
+import Label from '../entities/Label.js';
+import { authMiddleware } from '../middleware/AuthMiddleware.js';
 
 const router = Router();
 

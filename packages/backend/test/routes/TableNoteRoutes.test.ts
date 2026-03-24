@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
 import { idText, server } from "typescript";
 
-import Label from "../../entities/Label.ts";
-import type TableNote from "../../entities/TableNote.ts";
-import type TableNoteColumn from "../../entities/TableNoteColumn.ts";
-import TableNoteCell from "../../entities/TableNoteCell.ts";
+import Label from "../../entities/Label.js";
+import type TableNote from "../../entities/TableNote.js";
+import type TableNoteColumn from "../../entities/TableNoteColumn.js";
+import TableNoteCell from "../../entities/TableNoteCell.js";
 import type { Request, Response, NextFunction } from "express";
 import { createQueryBuilder, EntityManager } from "typeorm";
 
@@ -249,7 +249,7 @@ const mockTransaction = jest.fn(async (callback: (entityManager: EntityManager) 
     await callback(mockEntityManager as unknown as EntityManager);
 });
 
-jest.unstable_mockModule("../../DataSource.ts", () => ({
+jest.unstable_mockModule("../../DataSource", () => ({
     AppDataSource: {
         initialize: jest.fn<() => Promise<any>>().mockResolvedValue(true),
         getRepository: mockGetRepository,
@@ -259,8 +259,8 @@ jest.unstable_mockModule("../../DataSource.ts", () => ({
 }));
 
 // モックが終わってから import
-const { app, initializeServer } = await import("../../server.ts");
-const AppDataSource = await import("../../DataSource.ts");
+const { app, initializeServer } = await import("../../server.js");
+const AppDataSource = await import("../../DataSource.js");
 
 describe("TableNoteRoutes", () => {
    beforeAll(async () => {

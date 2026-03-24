@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { AppDataSource } from "../DataSource.ts";
-import Note from "../entities/Note.ts";
-import Label from "../entities/Label.ts";
+import { AppDataSource } from "../DataSource.js";
+import Note from "../entities/Note.js";
+import Label from "../entities/Label.js";
 import archiver from "archiver";
 import { stringify } from "csv-stringify/sync";
-import NotePassword from "../entities/NotePassword.ts";
-import TableNote from "../entities/TableNote.ts";
-import TableNoteCell from "../entities/TableNoteCell.ts";
-import TableNoteColumn from "../entities/TableNoteColumn.ts";
-import { authMiddleware } from "../middleware/AuthMiddleware.ts";
+import NotePassword from "../entities/NotePassword.js";
+import TableNote from "../entities/TableNote.js";
+import TableNoteCell from "../entities/TableNoteCell.js";
+import TableNoteColumn from "../entities/TableNoteColumn.js";
+import { authMiddleware } from "../middleware/AuthMiddleware.js";
 
 const router = Router();
 

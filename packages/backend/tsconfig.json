@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "nodenext",
     "moduleResolution": "nodenext",
     "outDir": "./dist",
+    "rootDir": "./",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "useDefineForClassFields": false,
@@ -10,9 +11,9 @@
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "sourceMap": true,
-    "typeRoots": ["./node_modules/@types", "./types"],
-    "noEmit": true,
-    "allowImportingTsExtensions": true
+    "typeRoots": ["./node_modules/@types", "./types", "../../node_modules/@types"],
+    "noEmit": false,
+    "allowImportingTsExtensions": false
   },
   "exclude": [
     "node_modules",
@@ -20,5 +21,12 @@
     "test",
     "../../node_modules",
     "../frontend"
+  ],
+  "include": [
+    "entities",
+    "middleware",
+    "routes",
+    "DataSource.ts",
+    "server.ts"
   ]
 }

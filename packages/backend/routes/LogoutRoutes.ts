@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
-import { redis } from '../server.ts';
+import { redis } from '../server.js';
 
 const router = Router();
 const SECRET = process.env.SECRET || 'hoard_secret';
