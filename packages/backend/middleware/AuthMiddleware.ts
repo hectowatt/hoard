@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { Redis } from 'ioredis';
-import { redis } from '../server';
+import { redis } from '../server.js';
 
 const SECRET = process.env.SECRET || 'hoard_secret';
 const ALLOWED_ORIGIN = process.env.NODE_ENV === 'production' ? process.env.DOMAIN : "http://localhost:8120";

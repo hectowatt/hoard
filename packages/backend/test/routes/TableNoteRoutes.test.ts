@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
 import { idText, server } from "typescript";
 
-import Label from "../../entities/Label";
-import type TableNote from "../../entities/TableNote";
-import type TableNoteColumn from "../../entities/TableNoteColumn";
-import TableNoteCell from "../../entities/TableNoteCell";
+import Label from "../../entities/Label.js";
+import type TableNote from "../../entities/TableNote.js";
+import type TableNoteColumn from "../../entities/TableNoteColumn.js";
+import TableNoteCell from "../../entities/TableNoteCell.js";
 import type { Request, Response, NextFunction } from "express";
 import { createQueryBuilder, EntityManager } from "typeorm";
 
@@ -259,8 +259,8 @@ jest.unstable_mockModule("../../DataSource", () => ({
 }));
 
 // モックが終わってから import
-const { app, initializeServer } = await import("../../server");
-const AppDataSource = await import("../../DataSource");
+const { app, initializeServer } = await import("../../server.js");
+const AppDataSource = await import("../../DataSource.js");
 
 describe("TableNoteRoutes", () => {
    beforeAll(async () => {

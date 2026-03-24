@@ -1,12 +1,12 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import Note from "./entities/Note";
-import Label from "./entities/Label";
-import TableNote from "./entities/TableNote";
-import TableNoteColumn from "./entities/TableNoteColumn";
-import TableNoteCell from "./entities/TableNoteCell";
-import Password from "./entities/NotePassword";
-import HoardUser from "./entities/HoardUser";
+import Note from "./entities/Note.js";
+import Label from "./entities/Label.js";
+import TableNote from "./entities/TableNote.js";
+import TableNoteColumn from "./entities/TableNoteColumn.js";
+import TableNoteCell from "./entities/TableNoteCell.js";
+import Password from "./entities/NotePassword.js";
+import HoardUser from "./entities/HoardUser.js";
 
 export const AppDataSource: DataSource = new DataSource({
     type: "postgres",

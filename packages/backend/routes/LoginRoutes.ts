@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource';
+import { AppDataSource } from '../DataSource.js';
 import jwt, { SignOptions } from 'jsonwebtoken';
 import 'dotenv/config';
 import bcrypt from "bcrypt";
 import { nanoid } from 'nanoid';
-import { redis } from '../server';
+import { redis } from '../server.js';
 
 const router = Router();
 const SECRET: string = process.env.SECRET || 'hoard_secret';

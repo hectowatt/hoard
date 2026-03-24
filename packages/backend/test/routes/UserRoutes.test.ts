@@ -2,10 +2,10 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../DataSource";
+import { AppDataSource } from "../../DataSource.js";
 
-import type HoardUser from "../../entities/HoardUser";
-import { authMiddleware } from "../../middleware/AuthMiddleware";
+import type HoardUser from "../../entities/HoardUser.js";
+import { authMiddleware } from "../../middleware/AuthMiddleware.js";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
@@ -65,7 +65,7 @@ jest.unstable_mockModule("../../DataSource", () => ({
 }));
 
 // モックが終わってから import
-const { app, initializeServer } = await import("../../server");
+const { app, initializeServer } = await import("../../server.js");
 
 describe("HoardUserRoutes", () => {
     beforeAll(async () => {

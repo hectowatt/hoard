@@ -2,11 +2,11 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from '@jest/globals';
-import { AppDataSource } from "../../DataSource";
+import { AppDataSource } from "../../DataSource.js";
 import { idText, server } from "typescript";
 
-import Label from "../../entities/Label";
-import { authMiddleware } from "../../middleware/AuthMiddleware";
+import Label from "../../entities/Label.js";
+import { authMiddleware } from "../../middleware/AuthMiddleware.js";
 import type { Request, Response, NextFunction } from "express";
 
 // Redis をモック
@@ -71,7 +71,7 @@ jest.unstable_mockModule("../../DataSource", () => ({
 }));
 
 // モックが終わってから import
-const { app, hoardserver } = await import("../../server");
+const { app, hoardserver } = await import("../../server.js");
 
 describe("/labels", () => {
   it("POST /labels should return 201 and message, registered label", async () => {

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { AppDataSource } from '../DataSource';
-import { authMiddleware } from '../middleware/AuthMiddleware';
-import HoardUser from '../entities/HoardUser';
+import { AppDataSource } from '../DataSource.js';
+import { authMiddleware } from '../middleware/AuthMiddleware.js';
+import HoardUser from '../entities/HoardUser.js';
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { redis } from '../server';
+import { redis } from '../server.js';
 import { nanoid } from 'nanoid';
 
 const router = Router();

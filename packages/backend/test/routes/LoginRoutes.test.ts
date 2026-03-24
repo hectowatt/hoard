@@ -2,7 +2,7 @@ import request from "supertest";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { jest } from "@jest/globals";
-import { AppDataSource } from "../../DataSource";
+import { AppDataSource } from "../../DataSource.js";
 import { server } from "typescript";
 
 // Redis をモック
@@ -36,7 +36,7 @@ jest.unstable_mockModule("../../DataSource", () => ({
 }));
 
 // モックが終わってから import
-const { app, initializeServer } = await import("../../server");
+const { app, initializeServer } = await import("../../server.js");
 
 
 describe("POST /login", () => {
