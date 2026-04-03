@@ -5,6 +5,7 @@ import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
+import { debugLog } from "../script/DebugLog";
 
 interface trashTableNoteProps {
     id: string;
@@ -77,7 +78,7 @@ export default function TrashTableNote({ id, title, label_id, is_locked, created
                 }
             }
             const result = await response.json();
-            console.log("Delete success!", result);
+            debugLog("Delete success!", result);
 
             if (typeof onDelete === "function") {
                 onDelete(id);
@@ -111,7 +112,7 @@ export default function TrashTableNote({ id, title, label_id, is_locked, created
             }
 
             const result = await response.json();
-            console.log("Restore success!", result);
+            debugLog("Restore success!", result);
 
             if (typeof onRestore === "function") {
                 onRestore(id, editTitle, editLabel, result.tablenote.updatedate);

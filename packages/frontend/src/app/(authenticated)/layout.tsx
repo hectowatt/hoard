@@ -362,7 +362,12 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 									position: 'relative',
 								}}
 							>
-								<Link href="/" onClick={() => { setSearchWord(""); setSearchLabel("") }} data-testid="hoardicon">
+								<Link href="/" onClick={() => { setSearchWord(""); setSearchLabel("") }} data-testid="hoardicon" style={{
+									display: 'block',
+									width: '100%',
+									height: '100%',
+									position: 'relative'
+								}}>
 									<Image
 										src="/Hoard_icon.png"
 										alt="Hoard Icon"

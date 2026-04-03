@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { startTokenRefreshInterval } from "../(authenticated)/script/TokenRefresh";
 import { useAuthContext } from "../context/AuthProvider";
+import { debugLog } from "../(authenticated)/script/DebugLog";
 
 
 export default function LoginPage() {
@@ -74,7 +75,7 @@ export default function LoginPage() {
 
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
-            console.log("login success!");
+            debugLog("login success!");
             setIsLoading(false);
             router.push("/");
         } else {
@@ -100,7 +101,7 @@ export default function LoginPage() {
         })
 
         if (response.ok) {
-            console.log("create user success!");
+            debugLog("create user success!");
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
             setIsLoading(false);

@@ -13,6 +13,7 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import { useScreenSizeContext } from "../context/ScreenSizeProvider";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { debugLog } from "../script/DebugLog";
 
 interface NoteProps {
     id: string;
@@ -112,7 +113,7 @@ export default function Note({
                 throw new Error("Failed to delete note");
             }
             const result = await response.json();
-            console.log("Delete success!", result);
+            debugLog("Delete success!", result);
 
             if (typeof onDelete === "function") {
                 onDelete(id);
@@ -157,7 +158,7 @@ export default function Note({
             }
 
             const result = await response.json();
-            console.log("Save success!", result);
+            debugLog("Save success!", result);
 
             if (typeof onSave === "function") {
                 onSave(id, editTitle, editContent, editLabel ?? "", result.note.updatedate);

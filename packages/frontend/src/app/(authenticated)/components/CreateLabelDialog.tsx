@@ -8,6 +8,7 @@ import { useNoteContext } from "@/app/(authenticated)/context/NoteProvider";
 import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useRouter } from "next/navigation";
+import { debugLog } from "../script/DebugLog";
 
 
 interface LabelDialogProps {
@@ -68,7 +69,7 @@ export default function CreateLabelDialog({ open, onClose }: LabelDialogProps) {
 
 
             const result = await response.json();
-            console.log("Save success!", result);
+            debugLog("Save success!", result);
 
             setInput(""); // 入力フィールドをクリア
             await fetchLabels(); // ラベルを再取得して更新
@@ -112,7 +113,7 @@ export default function CreateLabelDialog({ open, onClose }: LabelDialogProps) {
                 throw new Error("Failed to delete label");
             }
             const result = await response.json();
-            console.log("Delete success!", result);
+            debugLog("Delete success!", result);
             // ラベル削除後、状態を更新
 
             // ラベルの状態を更新
@@ -146,7 +147,7 @@ export default function CreateLabelDialog({ open, onClose }: LabelDialogProps) {
                                             setTargetLabelId(label.id);
                                             setConfirmOpen(true);
                                         } else {
-                                            console.log("islabelused", isLabelUsed(label.id));
+                                            debugLog("islabelused", isLabelUsed(label.id));
                                             onDeleteLabel(label.id);
                                         }
                                     }}>
