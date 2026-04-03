@@ -47,6 +47,8 @@
     "label_download_desc": "You can download saved data.",
     "label_upload_desc": "Downloaded data can be registered in the database.",
     "label_filtered": "Filtering...",
+    "label_about_hoard": "About Hoard",
+    "label_hoard_version": "Version",
     "placeholder_search": "Search",
     "placeholder_title": "Title",
     "placeholder_input_title": "Enter title...",

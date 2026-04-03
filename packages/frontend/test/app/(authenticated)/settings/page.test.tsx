@@ -62,6 +62,9 @@ describe("Setting Page", () => {
         const label_user_settings_desc = i18n.t("label_user_settings_desc");
         const label_note_password_settings = i18n.t("label_note_password_settings");
         const label_note_password_settings_desc = i18n.t("label_note_password_settings_desc");
+        const label_download = i18n.t("label_download");
+        const label_upload = i18n.t("label_upload");
+        const label_about_hoard = i18n.t("label_about_hoard");
         render(
             <AuthProvider>
                 <SnackbarProvider>
@@ -75,6 +78,10 @@ describe("Setting Page", () => {
         expect(screen.getByText(label_user_settings_desc)).toBeInTheDocument();
         expect(screen.getByText(label_note_password_settings)).toBeInTheDocument();
         expect(screen.getByText(label_note_password_settings_desc)).toBeInTheDocument();
+        expect(screen.getByText(label_download)).toBeInTheDocument();
+        expect(screen.getByText(label_upload)).toBeInTheDocument();
+        expect(screen.getByText(label_about_hoard)).toBeInTheDocument();
+        expect(screen.getByText(/Version:/)).toBeInTheDocument();
 
         await waitFor(() => {
             expect(screen.getByTestId("prevnotepasswordinput")).toBeInTheDocument();
@@ -86,6 +93,8 @@ describe("Setting Page", () => {
         expect(screen.getByTestId("notepasswordinput")).toBeInTheDocument();
         expect(screen.getByTestId("userinfosave")).toBeInTheDocument();
         expect(screen.getByTestId("notepasswordsave")).toBeInTheDocument();
+        expect(screen.getByTestId("button-download")).toBeInTheDocument();
+        expect(screen.getByTestId("button-upload")).toBeInTheDocument();
     });
 
     it("ユーザ情報保存ボタンをクリックしたとき、/api/userにリクエストが送信される", async () => {

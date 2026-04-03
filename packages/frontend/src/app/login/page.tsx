@@ -27,6 +27,32 @@ export default function LoginPage() {
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
 
+      const [version, setVersion] = React.useState("");
+      useEffect(() => {
+        const fetchVersion = async () => {
+          try{
+            const res = await fetch("/api", {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            });
+            if(res.ok){
+              const result = await res.json();
+              setVersion(result.version);
+            }else{
+              showSnackbar(t("message_error_occured"), "error");
+            }
+          }catch(err){
+              showSnackbar(t("message_error_occured"), "error");
+            
+          }
+        };
+    
+        fetchVersion();
+    
+      },[]);
+
     // ログイン用処理
     const handleLogin = async () => {
         setIsLoading(true);
@@ -216,6 +242,9 @@ export default function LoginPage() {
                     {renderButton()}
                 </Box>
             </Paper>
+                <Typography variant="body2" color="#000000" sx={{ mt: 2 }}>
+                    Version: {version}
+                </Typography>
         </Box>
     );
 }

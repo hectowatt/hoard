@@ -47,6 +47,8 @@
     "label_download_desc": "保存したデータをダウンロードできます。",
     "label_upload_desc": "ダウンロードしたデータをデータベースに登録できます。",
     "label_filtered": "絞り込んでいます...",
+    "label_about_hoard": "Hoard について",
+    "label_hoard_version": "バージョン",
     "placeholder_search": "検索",
     "placeholder_title": "タイトル",
     "placeholder_input_title": "タイトルを入力...",

@@ -49,8 +49,10 @@ router.post('/', async (req, res) => {
             }, REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY_SEC });
 
             // Redis にトークン情報を保存
-            await redis.set(`accessToken:${accessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC);
-            await redis.set(`refreshToken:${refreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY_SEC);
+            if (redis) {
+                await redis.set(`accessToken:${accessJti}`, 'valid', 'EX', ACCESS_TOKEN_EXPIRY_SEC);
+                await redis.set(`refreshToken:${refreshJti}`, 'valid', 'EX', REFRESH_TOKEN_EXPIRY_SEC);
+            }
             console.log("Access and Refresh tokens created");
 
 
