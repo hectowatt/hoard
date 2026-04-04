@@ -493,6 +493,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						sx={{
 							// Drawerの幅を動的に設定
 							width: currentDrawerWidth,
+							mt: 2,
 							flexShrink: 0,
 							[`& .MuiDrawer-paper`]: {
 								width: currentDrawerWidth,
