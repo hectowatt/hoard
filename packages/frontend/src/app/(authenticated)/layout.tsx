@@ -493,7 +493,6 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						sx={{
 							// Drawerの幅を動的に設定
 							width: currentDrawerWidth,
-							mt: 2,
 							flexShrink: 0,
 							[`& .MuiDrawer-paper`]: {
 								width: currentDrawerWidth,
@@ -508,7 +507,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						}}
 					>
 						<Toolbar />
-						<Box sx={{ overflowY: "auto", overflowX: "hidden" }}>
+						<Box sx={{ overflowY: "auto", overflowX: "hidden",paddingTop: 'env(safe-area-inset-top)' }}>
 							<List>
 								<ListItemButton onClick={() => setIsDrawerOpen(!isDrawerOpen)} sx={{ pl: logoHorizontalPadding }} color="inherit">
 									<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', pl: logoHorizontalPadding }}>
