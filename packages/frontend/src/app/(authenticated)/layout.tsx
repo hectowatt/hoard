@@ -423,6 +423,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 								paddingLeft: { xs: 1, sm: 2 },
 								paddingRight: { xs: 1, sm: 2 },
 								paddingBottom: 'env(safe-area-inset-bottom)',
+								paddingTop: 'env(safe-area-inset-top)',
 							}}>
 								<Box sx={{ width: '100%' }}>
 									<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
