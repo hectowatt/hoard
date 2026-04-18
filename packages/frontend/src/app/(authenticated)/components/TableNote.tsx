@@ -27,6 +27,7 @@ import PushPinIcon from '@mui/icons-material/PushPin';
 import { useScreenSizeContext } from "../context/ScreenSizeProvider";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import { debugLog } from "../script/DebugLog";
 
 interface Column {
     id: number;
@@ -223,7 +224,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
 
                 if (responseSelect.ok) {
                     const resultSelect = await responseSelect.json();
-                    console.log("パスワード取得成功", resultSelect);
+                    debugLog("パスワード取得成功", resultSelect);
                     if (resultSelect.password_id !== null && resultSelect.password_id !== "" && resultSelect.password_id !== undefined) {
                         // すでにパスワードが登録されている場合はパスワード入力を求める
                         setPasswordId(resultSelect.password_id);
@@ -418,7 +419,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
             }
 
             const result = await response.json();
-            console.log("Table note saved successfully!", result);
+            debugLog("Table note saved successfully!", result);
             // テーブルノート登録時のコールバック関数を呼び出す
             if (typeof onSave === "function") {
                 onSave(result.tableNote.id, result.tableNote.title, editLabel || "", isLocked, result.tableNote.updatedate, editColumns, editRowCells);
@@ -451,7 +452,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                 }
             }
             const result = await response.json();
-            console.log("Delete success!", result);
+            debugLog("Delete success!", result);
 
             if (typeof onDelete === "function") {
                 onDelete(id);

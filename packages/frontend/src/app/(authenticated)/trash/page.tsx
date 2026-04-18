@@ -47,7 +47,6 @@ export default function Home() {
       }
 
       const data = await response.json();
-      console.log("selected trash data:", JSON.stringify(data, null, 2));
       setTrashNotes(data);
     } catch (error) {
       console.error("Error fetching trash notes", error);
@@ -94,7 +93,6 @@ export default function Home() {
       }
 
       const data = await response.json();
-      console.log("selected trash data:", JSON.stringify(data, null, 2));
       setTrashTableNotes(data);
     } catch (error) {
       console.error("Error fetching trash notes", error);

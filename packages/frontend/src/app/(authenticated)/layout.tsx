@@ -183,7 +183,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 	// 現在のDrawerの幅をstateとして管理
 	const currentDrawerWidth = isDrawerOpen ? drawerWidthOpen : drawerWidthClosed;
 	const pathname = usePathname();
-	const isActive = (href: string) => {
+	const getIsActive = (href: string) => {
 		if (href === "/") return pathname === "/";
 		return pathname.startsWith(href);
 	};
@@ -362,7 +362,12 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 									position: 'relative',
 								}}
 							>
-								<Link href="/" onClick={() => { setSearchWord(""); setSearchLabel("") }} data-testid="hoardicon">
+								<Link href="/" onClick={() => { setSearchWord(""); setSearchLabel("") }} data-testid="hoardicon" style={{
+									display: 'block',
+									width: '100%',
+									height: '100%',
+									position: 'relative'
+								}}>
 									<Image
 										src="/Hoard_icon.png"
 										alt="Hoard Icon"
@@ -414,7 +419,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 								display: "flex",
 								alignItems: "center",
 								gap: 2,
-								height: '66px',
+								height: `calc(66px + env(safe-area-inset-bottom))`,
 								paddingLeft: { xs: 1, sm: 2 },
 								paddingRight: { xs: 1, sm: 2 },
 								paddingBottom: 'env(safe-area-inset-bottom)',
@@ -422,7 +427,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 								<Box sx={{ width: '100%' }}>
 									<Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
 										{navAboveItems.map(({ text, icon, href, dialog, onClick }) => {
-											const active = href ? isActive(href) : false;
+											const isActive = href ? getIsActive(href) : false;
 											return (
 												<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
 													{dialog ? (
@@ -432,9 +437,9 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 													) : (
 														onClick ? (
 															<IconButton component={Link} href={href!} onClick={onClick} color="inherit" sx={{
-																...(active && {
+																...(isActive && {
 																	color: "primary.main",
-																	bgcolor: "action.selected",
+																	bgcolor: "transparent",
 																	"& .MuiListItemIcon-root": { color: "primary.main" }
 																})
 															}}>
@@ -456,13 +461,13 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 											</IconButton>
 										</ListItem>
 										{navBelowItems.map(({ text, icon, href }) => {
-											const active = href ? isActive(href) : false;
+											const isActive = href ? getIsActive(href) : false;
 											return (
 												<ListItem key={text} sx={{ flexGrow: 1, display: "flex", justifyContent: "center", px: 0 }}>
 													<IconButton component={Link} href={href} color="inherit" sx={{
-														...(active && {
+														...(isActive && {
 															color: "primary.main",
-															bgcolor: "action.selected",
+															bgcolor: "transparent",
 															"& .MuiListItemIcon-root": { color: "primary.main" }
 														})
 													}}>
@@ -502,7 +507,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 						}}
 					>
 						<Toolbar />
-						<Box sx={{ overflowY: "auto", overflowX: "hidden" }}>
+						<Box sx={{ overflowY: "auto", overflowX: "hidden",paddingTop: 'env(safe-area-inset-top)' }}>
 							<List>
 								<ListItemButton onClick={() => setIsDrawerOpen(!isDrawerOpen)} sx={{ pl: logoHorizontalPadding }} color="inherit">
 									<ListItemIcon sx={{ minWidth: 0, justifyContent: 'center', pl: logoHorizontalPadding }}>
@@ -510,7 +515,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 									</ListItemIcon>
 								</ListItemButton>
 								{navAboveItems.map(({ text, icon, href, dialog, onClick }) => {
-									const active = href ? isActive(href) : false;
+									const isActive = href ? getIsActive(href) : false;
 									return (
 										<ListItem key={text} disablePadding>
 											{dialog ? (
@@ -529,7 +534,7 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 											) : (
 												onClick ? (
 													<ListItemButton component={Link} href={href!} onClick={onClick} sx={{
-														pl: logoHorizontalPadding, ...(active && {
+														pl: logoHorizontalPadding, ...(isActive && {
 															color: "primary.main",
 															bgcolor: "action.selected",
 															"& .MuiListItemIcon-root": { color: "primary.main" }
@@ -598,11 +603,11 @@ function InnerLayout({ children }: { children: React.ReactNode }) {
 							<Divider />
 							<List>
 								{navBelowItems.map(({ text, icon, href }) => {
-									const active = href ? isActive(href) : false;
+									const isActive = href ? getIsActive(href) : false;
 									return (
 										<ListItem key={text} disablePadding>
 											<ListItemButton component={Link} href={href} sx={{
-												pl: logoHorizontalPadding, ...(active && {
+												pl: logoHorizontalPadding, ...(isActive && {
 													color: "primary.main",
 													bgcolor: "action.selected",
 													"& .MuiListItemIcon-root": { color: "primary.main" }

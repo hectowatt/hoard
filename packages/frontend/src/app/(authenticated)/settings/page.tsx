@@ -13,6 +13,7 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { styled } from '@mui/material/styles';
 import { useAuthContext, verifyAndRefreshTokens } from "@/app/context/AuthProvider";
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 
 // 設定ページのコンテンツ
@@ -44,6 +45,32 @@ export default function Home() {
     whiteSpace: 'nowrap',
     width: 1,
   });
+
+  const [version, setVersion] = React.useState("");
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try{
+        const res = await fetch("/api", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        });
+        if(res.ok){
+          const result = await res.json();
+          setVersion(result.version);
+        }else{
+          showSnackbar(t("message_error_occured"), "error");
+        }
+      }catch(err){
+          showSnackbar(t("message_error_occured"), "error");
+        
+      }
+    };
+
+    fetchVersion();
+
+  },[])
 
   const fetchPasswordStatus = async () => {
     const responseSelect = await fetch("/api/password", {
@@ -444,6 +471,11 @@ export default function Home() {
         </Button>
 
       </div>
+       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 4 }}>
+        <InfoOutlinedIcon></InfoOutlinedIcon>
+        <h3>{t("label_about_hoard")}</h3>
+      </Box>
+      <p>{t("label_hoard_version")}: {version}</p>
     </Container >
 
   );

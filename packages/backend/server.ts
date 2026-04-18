@@ -23,6 +23,7 @@ import next from 'next';
 import type { NextServerOptions, NextServer } from 'next/dist/server/next.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +32,12 @@ const dev = process.env.NODE_ENV !== 'production';
 const frontendDir = dev
   ? path.resolve(__dirname, '../frontend')        // 開発時 (server.ts の場所から)
   : path.resolve(__dirname, '../../frontend');    // 本番時 (dist/server.js の場所から)
+
+// ルートの package.json を読み取る
+const rootPackageJsonPath = dev ?
+path.join(__dirname, '../../package.json')
+: path.join(__dirname, '../../../package.json');
+const rootPackageJson = JSON.parse(fs.readFileSync(rootPackageJsonPath, 'utf8'));
 
 const port = 8120;
 const nextApp: NextServer = (next as unknown as (options: NextServerOptions) => NextServer)({
@@ -58,6 +65,11 @@ app.use(cors({
   credentials: true
 }));
 
+// ルートにアクセスされたとき、バージョン情報を返す
+app.get('/api', (req, res) => {
+  return res.status(200).json({ version: rootPackageJson.version });
+});
+
 // Redis / PostgreSQL 設定 (遅延初期化)
 export let redis: Redis | null = null;
 export let pool: pg.Pool | null = null;
@@ -78,7 +90,7 @@ export async function initializeServer() {
     const { Pool } = pg;
     pool = new Pool({
       host: process.env.PG_HOST || 'localhost',
-      port: process.env.PG_PORT || 5432,
+      port: Number(process.env.PG_PORT) || 5432,
       user: process.env.PG_USER || 'postgres',
       password: process.env.PG_PASSWORD || 'password',
       database: process.env.PG_DATABASE || 'mydatabase',
@@ -133,15 +145,15 @@ export async function startServer() {
       const { pathname } = new URL(request.url, `http://${request.headers.host}`);
 
       if (pathname === '/api/ws' || pathname === '/ws') {
-        wss.handleUpgrade(request, socket, head, (ws) => {
-          wss.emit('connection', ws, request);
+        wss.handleUpgrade(request, socket, head, (client: any) => {
+          wss.emit('connection', client, request);
         });
       } else {
         // それ以外のアップグレード（Next.jsのHMRなど）はそのまま流す
       }
     });
   }
-  wss.on('connection', (ws) => {
+  wss.on('connection', (ws: WebSocketServer) => {
     console.log('Client connected');
     ws.on('close', () => console.log('Client disconnected'));
   });

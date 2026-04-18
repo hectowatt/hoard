@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { jest } from '@jest/globals';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { LessThan } from 'typeorm';
 
 // Next.js のモック化 (テスト時にNextサーバーを起動させないため)
@@ -89,6 +89,13 @@ describe('Server Tests', () => {
     const response = await request(app).get('/');
     expect(response.status).toBe(200);
     expect(response.text).toBe('Next.js Page');
+  });
+
+    it('GET /api should return version information', async () => {
+    const response = await request(app).get('/api');
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty('version');
+    expect(response.body.version).toBe("1.1.2");
   });
 
   it('API routes should still respond (e.g., /api/login)', async () => {

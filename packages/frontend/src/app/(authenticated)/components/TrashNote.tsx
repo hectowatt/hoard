@@ -4,6 +4,7 @@ import { useLabelContext } from "@/app/(authenticated)/context/LabelProvider";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
+import { debugLog } from "../script/DebugLog";
 
 interface trashNoteProps {
     id: string;
@@ -73,7 +74,7 @@ export default function TrashNote({ id, title, content, label_id, is_locked, cre
                 }
             }
             const result = await response.json();
-            console.log("Delete success!", result);
+            debugLog("Delete success!", result);
 
             if (typeof onDelete === "function") {
                 onDelete(id);
@@ -107,7 +108,7 @@ export default function TrashNote({ id, title, content, label_id, is_locked, cre
             }
 
             const result = await response.json();
-            console.log("Restore success!", result);
+            debugLog("Restore success!", result);
 
             if (typeof onRestore === "function") {
                 onRestore(id, editTitle, editContent, editLabel, result.note.updatedate);

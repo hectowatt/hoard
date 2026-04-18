@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { startTokenRefreshInterval } from "../(authenticated)/script/TokenRefresh";
 import { useAuthContext } from "../context/AuthProvider";
+import { debugLog } from "../(authenticated)/script/DebugLog";
 
 
 export default function LoginPage() {
@@ -26,6 +27,32 @@ export default function LoginPage() {
     const router = useRouter();
     const { t } = useTranslation();
     const { showSnackbar } = useSnackbar();
+
+      const [version, setVersion] = React.useState("");
+      useEffect(() => {
+        const fetchVersion = async () => {
+          try{
+            const res = await fetch("/api", {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json"
+              }
+            });
+            if(res.ok){
+              const result = await res.json();
+              setVersion(result.version);
+            }else{
+              showSnackbar(t("message_error_occured"), "error");
+            }
+          }catch(err){
+              showSnackbar(t("message_error_occured"), "error");
+            
+          }
+        };
+    
+        fetchVersion();
+    
+      },[]);
 
     // ログイン用処理
     const handleLogin = async () => {
@@ -48,7 +75,7 @@ export default function LoginPage() {
 
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
-            console.log("login success!");
+            debugLog("login success!");
             setIsLoading(false);
             router.push("/");
         } else {
@@ -74,7 +101,7 @@ export default function LoginPage() {
         })
 
         if (response.ok) {
-            console.log("create user success!");
+            debugLog("create user success!");
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
             setIsLoading(false);
@@ -216,6 +243,9 @@ export default function LoginPage() {
                     {renderButton()}
                 </Box>
             </Paper>
+                <Typography variant="body2" color="#000000" sx={{ mt: 2 }}>
+                    Version: {version}
+                </Typography>
         </Box>
     );
 }

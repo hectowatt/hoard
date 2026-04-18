@@ -31,6 +31,7 @@ import { useTranslation } from "react-i18next";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useRouter } from "next/navigation";
 import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
+import { debugLog } from "../script/DebugLog";
 
 interface InputFormProps {
     onInsert: (newId: string, newTitle: string, newContent: string, newLabel: string, isLocked: boolean, isPinned: boolean) => void;
@@ -186,7 +187,7 @@ export default function InputForm({ onInsert, onInsertTableNote }: InputFormProp
             }
 
             const result = await response.json();
-            console.log("Save success!", result);
+            debugLog("Save success!", result);
 
             setTitle("");
             setContent("");
@@ -258,8 +259,8 @@ export default function InputForm({ onInsert, onInsertTableNote }: InputFormProp
             }
 
             const result = await response.json();
-            console.log("Table note saved successfully!", result);
-            console.log("result.tableNote.id:", result.tableNote.id);
+            debugLog("Table note saved successfully!", result);
+            debugLog("result.tableNote.id:", result.tableNote.id);
             // テーブルノート登録時のコールバック関数を呼び出す
             if (typeof onInsertTableNote === "function") {
                 onInsertTableNote(result.tableNote.id, result.tableNote.title, editLabelId || "", isLocked, isPinned, result.tableNote.columns, result.tableNote.rowCells);

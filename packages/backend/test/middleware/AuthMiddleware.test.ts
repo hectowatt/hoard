@@ -1,8 +1,8 @@
-import { jest } from '@jest/globals';
+import { afterAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 
 // Redisのgetメソッドのモック関数
-const mockRedisGet = jest.fn<() => Promise<string | null>>();
+const mockRedisGet = jest.fn<(key: string) => Promise<string | null>>();
 
 const mockJwtVerify = jest.fn((token, secret) => {
     if (token === 'valid-token') {
