@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Container, Dialog, DialogContent, DialogTitle, Grid } from "@mui/material";
+import { Box, Button, Container, Dialog, DialogContent, DialogTitle, Grid, Typography } from "@mui/material";
 import { useLabelContext } from "@/app/(authenticated)/context/LabelProvider";
 import TrashNote from "@/app/(authenticated)/components/TrashNote";
 import TrashTableNote from "@/app/(authenticated)/components/TrashTableNote";
@@ -10,19 +10,76 @@ import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/app/(authenticated)/context/SnackbarProvider";
 import { useAuthContext, verifyAndRefreshTokens } from "@/app/context/AuthProvider";
 import { getTokenRefresh } from "../script/TokenRefresh";
+import { useSearchWordContext } from "../context/SearchWordProvider";
+import { useSearchLabelContext } from "../context/SearchLabelProvider";
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 
+
+type tableNote = {
+    id: string;
+    title: string;
+    label_id: string;
+    createdate: string;
+    updatedate: string;
+    is_locked: boolean;
+    is_pinned: boolean;
+    columns: Column[];
+    rowCells: RowCell[][];
+};
+
+type Column = {
+    id: number;
+    name: string;
+    order?: number;
+    table_note_id?: string;
+}
+
+type RowCell = {
+    id: number;
+    rowIndex: number;
+    value: string;
+    columnId?: number;
+    table_note_id?: string;
+}
 
 // 削除されたNoteを表示するページコンテンツ
 export default function Home() {
   const [trashNotes, setTrashNotes] = useState<{ id: string, title: string; content: string; label_id: string, is_locked: boolean, createdate: string; updatedate: string }[]>([]);
-  const [trashTableNotes, setTrashTableNotes] = useState<{ id: string, title: string; label_id: string, is_locked: boolean, createdate: string; updatedate: string }[]>([]);
+  const [trashTableNotes, setTrashTableNotes] = useState<tableNote[]>([]);
   const { labels, fetchLabels } = useLabelContext();
+  const { searchWord } = useSearchWordContext();
+  const { searchLabel } = useSearchLabelContext();
   const { isInitializing } = useAuthContext();
   const { t } = useTranslation();
   const { showSnackbar } = useSnackbar();
   const router = useRouter();
   const [isConfirmAllDeleteDialogOpen, setIsConfirmAllDeleteDialogOpen] = useState(false);
   const [isConfirmAllRestoreDialogOpen, setIsConfirmAllRestoreDialogOpen] = useState(false);
+  // label_idに紐づくlabelnameを取得する
+  const getLabelNameById = (label_id: string) => {
+    const label = labels.find(label => label.id === label_id);
+    return label ? label.labelname : "";
+  };
+  const trimmedSearchWord = searchWord ? searchWord.trim().toLowerCase() : "";
+  const filterdTrashNotes = (searchWord ?
+    // 検索ワードとラベル絞り込み両方が適用されている場合
+    searchLabel ? trashNotes.filter(trashNote => (trashNote.title.toLowerCase().includes(trimmedSearchWord) || trashNote.content.toLowerCase().includes(trimmedSearchWord)) && getLabelNameById(trashNote.label_id).includes(searchLabel))
+      // 検索ワードが適用されている場合
+      : trashNotes.filter(trashNote => trashNote.title.toLowerCase().includes(trimmedSearchWord) || trashNote.content.toLowerCase().includes(trimmedSearchWord))
+    : searchLabel ?
+      // ラベル絞り込みだけされている場合
+      trashNotes.filter(trashNote => getLabelNameById(trashNote.label_id).includes(searchLabel))
+      // 何も絞り込みがされていない場合
+      : trashNotes);
+  const filterdTrashTableNotes = (searchWord ?
+    // 検索ワードとラベル絞り込み両方が適用されている場合
+    searchLabel ? trashTableNotes.filter(trashTableNote => (trashTableNote.title.toLowerCase().includes(trimmedSearchWord) || trashTableNote.columns.some(column => column.name.toLowerCase().includes(trimmedSearchWord)) || trashTableNote.rowCells.some(row => row.some(cell => cell.value.toLowerCase().includes(trimmedSearchWord)))) && getLabelNameById(trashTableNote.label_id).includes(searchLabel))
+      // 検索ワードが適用されている場合  
+      : trashTableNotes.filter(trashTableNote => trashTableNote.title.toLowerCase().includes(trimmedSearchWord) || trashTableNote.columns.some(column => column.name.toLowerCase().includes(trimmedSearchWord)) || trashTableNote.rowCells.some(row => row.some(cell => cell.value.toLowerCase().includes(trimmedSearchWord))))
+    : searchLabel ?
+      trashTableNotes.filter(trashTableNote => getLabelNameById(trashTableNote.label_id).includes(searchLabel))
+      // 何も絞り込みがされていない場合
+      : trashTableNotes);
 
   // 画面描画時にDBからノートを全件取得して表示する
   const fetchTrashNotes = async () => {
@@ -266,10 +323,18 @@ export default function Home() {
   return (
     <Container sx={{ position: "relative" }}>
       <p data-testid="description">{t("label_trash_desc")}</p>
+              {(searchWord || searchLabel) && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <FilterAltOutlinedIcon />
+            <Typography variant="body2">
+              {t("label_filtered")}
+            </Typography>
+          </Box>
+        )}
       <Button variant="contained" onClick={() => setIsConfirmAllDeleteDialogOpen(true)} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_confirm_all_delete">{t("button_all_delete")}</Button>
       <Button variant="contained" onClick={() => setIsConfirmAllRestoreDialogOpen(true)} sx={{ mr: 1, mt: 2, mb: 2 }} data-testid="button_confirm_all_restore">{t("button_all_restore")}</Button>
       <Grid container spacing={2}>
-        {trashNotes.map(note => (
+        {filterdTrashNotes.map(note => (
           <Grid key={note.id}>
             <TrashNote
               id={note.id}
@@ -285,7 +350,7 @@ export default function Home() {
             />
           </Grid>
         ))}
-        {trashTableNotes.map(tableNote => (
+        {filterdTrashTableNotes.map(tableNote => (
           <Grid key={tableNote.id}>
             <TrashTableNote
               id={tableNote.id}
