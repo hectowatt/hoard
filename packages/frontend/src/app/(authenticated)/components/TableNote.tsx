@@ -207,6 +207,15 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
         setOpen(false)
     };
 
+    // キャンセルボタン押下処理
+    const handleCancel = () => {
+        setEditTitle(title);
+        setEditColumns(columns);
+        setEditRowCells(rowCells);
+        setEditLabel(label_id || null);
+        setOpen(false);
+    };
+
     // ロックボタン押下処理
     const handleLock = async () => {
         if (isLocked) {
@@ -747,7 +756,7 @@ export default function TableNote({ id, title, label_id, is_locked, is_pinned, c
                                 </FormControl>
                                 <br />
                                 <Button onClick={handleSaveTableNote} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_save">{t("button_save")}</Button>
-                                <Button onClick={() => setOpen(false)} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_cancel">{t("button_cancel")}</Button>
+                                <Button onClick={handleCancel} variant="contained" sx={{ mr: 1, mt: 2 }} data-testid="button_cancel">{t("button_cancel")}</Button>
                                 <Button onClick={handleDelete} variant="contained" sx={{
                                     mr: 1, mt: 2
                                 }} data-testid="button_delete">{t("button_delete")}</Button>
