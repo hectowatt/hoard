@@ -35,12 +35,25 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
                         sm: 350,
                         md: 500,
                     },
-                    height: {
-                        xs: 50,
-                        sm: 55
+                    backgroundColor: "transparent",
+                    boxShadow: "none",
+                    "& .MuiFilledInput-root": {
+                        height: {
+                            xs: 50,
+                            sm: 55
+                        },
+                        backgroundColor: mode === "dark" ? "#060606" : "#ffffff",
+                        borderRadius: "5px",
+                        "&:hover": {
+                            backgroundColor: mode === "dark" ? "#060606" : "#ffffff",
+                        },
+                        "&.Mui-focused": {
+                            backgroundColor: mode === "dark" ? "#060606" : "#ffffff",
+                        },
+                        "&:before, &:after": {
+                            display: "none",
+                        },
                     },
-                    backgroundColor: mode === "dark" ? "#060606" : "#ffffff",
-                    borderRadius: "5px"
                 }}
                 InputProps={{
                     disableUnderline: true,
