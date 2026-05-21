@@ -76,7 +76,6 @@ export default function LoginPage() {
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
             debugLog("login success!");
-            setIsLoading(false);
             router.push("/");
         } else {
             const errorData = await response.json();
@@ -104,7 +103,6 @@ export default function LoginPage() {
             debugLog("create user success!");
             // リフレッシュトークンの自動開始
             startTokenRefreshInterval();
-            setIsLoading(false);
             router.push("/");
         } else {
             const errorData = await response.json();
