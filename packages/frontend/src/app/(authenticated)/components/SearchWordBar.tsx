@@ -3,6 +3,7 @@
 import { useSearchWordContext } from "@/app/(authenticated)/context/SearchWordProvider";
 import { IconButton, InputAdornment, TextField } from "@mui/material";
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
+import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +30,7 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
                 placeholder={t("placeholder_search")}
                 value={word}
                 onChange={(e) => setWord(e.target.value)}
+                data-testid="searchWordInput"
                 sx={{
                     width: {
                         xs: "100%",
@@ -53,13 +55,24 @@ export default function SearchWordBar({ mode }: searchWordBarProps) {
                         "&:before, &:after": {
                             display: "none",
                         },
+                        "& .MuiFilledInput-input": {
+                            display: "flex",
+                            alignItems: "center",
+                            padding: "0 14px",
+                            minHeight: "100%",
+                        },
                     },
                 }}
                 InputProps={{
                     disableUnderline: true,
                     endAdornment: (
                         <InputAdornment position="end">
-                            <IconButton type="submit" edge="end" aria-label="search" onClick={() => setSearchWord(word)}>
+                            {word && (
+                                <IconButton edge="end" aria-label="clear" data-testid="clearButton" onClick={() => {setWord(""); setSearchWord("");}} sx={{ color: "gray"}}>
+                                    <ClearOutlinedIcon />
+                                </IconButton>
+                            )}
+                            <IconButton type="submit" edge="end" aria-label="search" data-testid="searchButton" onClick={() => setSearchWord(word)}>
                                 <SearchOutlinedIcon />
                             </IconButton>
                         </InputAdornment>
