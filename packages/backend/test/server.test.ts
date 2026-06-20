@@ -95,7 +95,7 @@ describe('Server Tests', () => {
     const response = await request(app).get('/api');
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('version');
-    expect(response.body.version).toBe("1.1.2");
+    expect(response.body.version).toBe("1.1.3");
   });
 
   it('API routes should still respond (e.g., /api/login)', async () => {
